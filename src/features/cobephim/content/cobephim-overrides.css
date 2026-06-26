@@ -1,0 +1,202 @@
+@media (min-width: 768px) {
+  .cobe-header-react-wrap {
+    position: relative;
+    z-index: 50;
+  }
+
+  .movie-catalog .cobe-header-react-wrap {
+    pointer-events: none;
+  }
+
+  .movie-catalog .cobe-header-react-wrap > [data-site-header="true"] {
+    pointer-events: auto;
+  }
+
+  .movie-catalog #body-load {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  .phim-shell [data-site-header="true"] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 50;
+  }
+
+  .movie-catalog [data-site-header="true"] {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  #top_slider {
+    margin-top: -90px;
+    position: relative;
+    z-index: 0;
+  }
+
+  #top_slider + #wrapper.wrapper-w-slide {
+    margin-top: 140px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .top-slide-main {
+    height: 950px;
+  }
+
+  .top-slide-main .cover-fade {
+    height: 100% !important;
+  }
+
+  .top-slide-main .safe-area {
+    height: 100% !important;
+    padding-top: 90px;
+  }
+
+  .slide-content {
+    padding-top: 140px;
+  }
+
+  [data-site-header="true"] {
+    background: linear-gradient(
+      180deg,
+      rgba(15, 17, 26, 0.88) 0%,
+      rgba(15, 17, 26, 0.45) 42%,
+      rgba(15, 17, 26, 0) 100%
+    );
+  }
+
+  [data-site-header="true"].fly {
+    background: linear-gradient(
+      180deg,
+      rgba(15, 17, 26, 0.72) 0%,
+      rgba(15, 17, 26, 0.28) 42%,
+      rgba(15, 17, 26, 0) 100%
+    ) !important;
+  }
+
+  [data-site-header="true"].fixed {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    background: rgba(15, 17, 26, 0.96) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    z-index: 60;
+  }
+
+  .cobe-header-react .header-elements {
+    gap: 28px;
+  }
+
+  .cobe-header-react #search {
+    max-width: 23rem;
+  }
+
+  .cobe-header-react #main_menu {
+    gap: 0.35rem;
+  }
+
+  .cobe-header-react #main_menu .menu-item > a,
+  .cobe-menu-dropdown__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 2px;
+    color: #fff;
+    font: inherit;
+    font-weight: 500;
+  }
+
+  .cobe-menu-dropdown__trigger {
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+  }
+
+  .cobe-header-react #main_menu .menu-item > a:hover,
+  .cobe-menu-dropdown__trigger:hover,
+  .cobe-menu-dropdown:focus-within .cobe-menu-dropdown__trigger {
+    color: var(--primary-text);
+  }
+
+  .cobe-menu-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    min-height: 20px;
+    padding: 0 6px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ffd468, #e5b53d);
+    color: #11151d;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .cobe-menu-dropdown {
+    position: relative;
+  }
+
+  .cobe-mega-menu {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 0;
+    min-width: min(720px, 78vw);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 14px 24px;
+    padding: 22px 26px;
+    border-radius: 14px;
+    background: rgba(17, 21, 33, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 180ms ease;
+    pointer-events: none;
+  }
+
+  .cobe-mega-menu--regions {
+    min-width: min(760px, 82vw);
+    left: auto;
+    right: -120px;
+  }
+
+  .cobe-menu-dropdown:hover .cobe-mega-menu,
+  .cobe-menu-dropdown:focus-within .cobe-mega-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .cobe-mega-menu__col {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .cobe-mega-menu__col a {
+    display: block;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .cobe-mega-menu__col a:hover {
+    color: var(--primary-text);
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "nextjs-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone Next.js frontend application.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "check": "next typegen && tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.1.1",
+    "@mui/material": "^9.1.1",
+    "hls.js": "^1.6.16",
+    "mongoose": "^8.19.3",
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "swiper": "^12.2.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}
