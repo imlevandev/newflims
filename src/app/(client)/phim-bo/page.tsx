@@ -4,6 +4,9 @@ import { MovieGrid } from "@/features/movie-catalog/components/movie-grid";
 import { getSingleSearchValue } from "@/features/movie-catalog/lib/movie-catalog-format";
 import { moviesService } from "@/features/movie-catalog/lib/movie-catalog-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface MovieSeriesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }

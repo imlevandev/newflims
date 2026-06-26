@@ -13,6 +13,9 @@ import {
   moviesService,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface WatchMoviePageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;

@@ -3,6 +3,9 @@ import { ScheduleBoard } from "@/features/movie-catalog/components/schedule-boar
 import { moviesService } from "@/features/movie-catalog/lib/movie-catalog-data";
 import { buildMovieScheduleDays } from "@/features/movie-catalog/lib/movie-schedule";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface SchedulePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }

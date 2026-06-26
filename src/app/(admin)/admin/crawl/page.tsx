@@ -4,6 +4,9 @@ import { AdminCrawlPanel } from "@/features/admin-movies/components/admin-crawl-
 import { AdminShowtimeCrawlPanel } from "@/features/admin-movies/components/admin-showtime-crawl-panel";
 import { MoviesService } from "@/server/modules/movies/movies.service";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const moviesService = new MoviesService();
 
 function formatDateInput(date: Date) {
