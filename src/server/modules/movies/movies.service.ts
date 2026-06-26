@@ -99,7 +99,13 @@ export class MoviesService {
   }
 
   async getCategories(): Promise<CategoryDto[]> {
-    const categories = await this.moviesDbRepository.getCategories();
+    let categories: CategoryDto[] = [];
+
+    try {
+      categories = await this.moviesDbRepository.getCategories();
+    } catch (error) {
+      console.warn("Falling back to OPhim categories because MongoDB is unavailable.", error);
+    }
 
     if (categories.length > 0) {
       return categories;
@@ -114,7 +120,13 @@ export class MoviesService {
   }
 
   async getRegions(): Promise<RegionDto[]> {
-    const regions = await this.moviesDbRepository.getRegions();
+    let regions: RegionDto[] = [];
+
+    try {
+      regions = await this.moviesDbRepository.getRegions();
+    } catch (error) {
+      console.warn("Falling back to OPhim regions because MongoDB is unavailable.", error);
+    }
 
     if (regions.length > 0) {
       return regions;

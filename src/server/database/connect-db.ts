@@ -19,7 +19,15 @@ const globalCache = globalThis.mongooseConnection ?? {
 
 globalThis.mongooseConnection = globalCache;
 
+function isLocalMongoUri(uri: string) {
+  return uri.includes("127.0.0.1") || uri.includes("localhost");
+}
+
 export async function connectDb() {
+  if (env.APP_ENV === "production" && isLocalMongoUri(env.MONGODB_URI)) {
+    throw new Error("MONGODB_URI must be configured in production.");
+  }
+
   if (globalCache.conn) {
     return globalCache.conn;
   }
