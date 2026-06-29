@@ -632,18 +632,11 @@ export function VideoPlayer({
               </div>
             </div>
           </>
-        ) : activeEpisode.embed ? (
-          <iframe
-            allow="autoplay; encrypted-media; fullscreen"
-            className="movie-player__embed"
-            src={activeEpisode.embed}
-            title={`${movie.name} - ${activeEpisode.name}`}
-          />
         ) : (
           <div className="movie-player-empty">
             <h3>Tập này chưa có nguồn xem trực tiếp</h3>
             <p>
-              Tập này vẫn chưa phát sóng hoặc chưa có `m3u8` hay `embed_url`.
+              Tập này vẫn chưa phát sóng hoặc chưa có `m3u8`.
               Hãy chọn một tập khác đã phát ở bên dưới.
             </p>
           </div>

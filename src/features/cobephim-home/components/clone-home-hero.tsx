@@ -1,5 +1,6 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import type { CSSProperties } from "react";
 
 import { getMovieCover, stripHtml } from "@/features/movies-home/lib/movie-format";
@@ -31,51 +32,43 @@ function getHeroMeta(movie: RemoteMovieDto) {
 
 export function CloneHomeHero({ movies }: CloneHomeHeroProps) {
   const heroMovies = movies.slice(0, 6);
+  const featuredMovie = heroMovies[0];
+
+  if (!featuredMovie) {
+    return null;
+  }
+
+  const featuredPoster = getMovieCover(featuredMovie);
+  const featuredLogo = getTitleLogo(featuredMovie);
 
   return (
     <div id="top_slider">
       <div className="slide-wrapper top-slide-wrap">
         <div className="swiper swiper-fade swiper-initialized swiper-horizontal swiper-watch-progress top-slide-main swiper-backface-hidden">
           <div className="swiper-wrapper">
-            {heroMovies.map((movie, index) => {
-              const poster = getMovieCover(movie);
-              const logo = getTitleLogo(movie);
-              const slideStyle: CSSProperties = {
-                opacity: index === 0 ? 1 : 0,
-                transform: `translate3d(${-1440 * index}px, 0px, 0px)`,
-                width: "1440px",
-              };
-
-              return (
-                <div
-                  className={[
-                    "swiper-slide",
-                    index === 0 ? "swiper-slide-visible swiper-slide-fully-visible swiper-slide-active" : "",
-                    index === 1 ? "swiper-slide-next" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  key={movie.id}
-                  style={slideStyle}
-                >
+            <div
+              className="swiper-slide swiper-slide-visible swiper-slide-fully-visible swiper-slide-active"
+              style={{ opacity: 1, transform: "translate3d(0px, 0px, 0px)", width: "1440px" } satisfies CSSProperties}
+            >
                   <div className="slide-elements">
                     <a
-                      aria-label={`Xem phim ${movie.name}`}
+                      aria-label={`Xem phim ${featuredMovie.name}`}
                       className="slide-url"
-                      href={getMovieLink(movie.slug)}
+                      href={getMovieLink(featuredMovie.slug)}
                     />
                     <div
                       className="background-fade"
-                      style={{ backgroundImage: `url("${poster}")` }}
+                      style={{ backgroundImage: `url("${featuredPoster}")` }}
                     />
                     <div className="cover-fade">
                       <div className="cover-image">
                         <img
-                          alt={movie.name}
+                          alt={featuredMovie.name}
                           className="fade-in visible"
                           decoding="async"
+                          fetchPriority="high"
                           height="1080"
-                          src={poster}
+                          src={featuredPoster}
                           width="1920"
                         />
                       </div>
@@ -83,44 +76,44 @@ export function CloneHomeHero({ movies }: CloneHomeHeroProps) {
                     <div className="safe-area">
                       <div className="slide-content">
                         <div className="media-item">
-                          {logo ? (
+                          {featuredLogo ? (
                             <div className="media-title-image">
-                              <a href={getMovieLink(movie.slug)} title={movie.name}>
+                              <a href={getMovieLink(featuredMovie.slug)} title={featuredMovie.name}>
                                 <img
-                                  alt={movie.name}
+                                  alt={featuredMovie.name}
                                   className="media-title-logo-img"
                                   decoding="async"
                                   height="130"
                                   loading="lazy"
-                                  src={logo}
+                                  src={featuredLogo}
                                   width="500"
                                 />
                               </a>
                             </div>
                           ) : null}
-                          <h3 className="media-title" style={{ display: logo ? "none" : undefined }}>
-                            <a href={getMovieLink(movie.slug)}>{movie.name}</a>
+                          <h3 className="media-title" style={{ display: featuredLogo ? "none" : undefined }}>
+                            <a href={getMovieLink(featuredMovie.slug)}>{featuredMovie.name}</a>
                           </h3>
                           <h3 className="media-alias-title">
-                            <a href={getMovieLink(movie.slug)}>
-                              {movie.origin_name || movie.name}
+                            <a href={getMovieLink(featuredMovie.slug)}>
+                              {featuredMovie.origin_name || featuredMovie.name}
                             </a>
                           </h3>
                           <div className="hl-tags">
-                            {getHeroMeta(movie).map((meta) => (
+                            {getHeroMeta(featuredMovie).map((meta) => (
                               <div
-                                className={meta === (movie.imdb_rating || "0.0") ? "tag-imdb" : "tag-classic"}
-                                key={`${movie.id}-${meta}`}
+                                className={meta === (featuredMovie.imdb_rating || "0.0") ? "tag-imdb" : "tag-classic"}
+                                key={`${featuredMovie.id}-${meta}`}
                               >
                                 <span>{meta}</span>
                               </div>
                             ))}
                             <div className="tag-classic">
-                              <span>{movie.episode_time}</span>
+                              <span>{featuredMovie.episode_time}</span>
                             </div>
                           </div>
                           <div className="hl-tags mb-4">
-                            {movie.categories.slice(0, 4).map((category) => (
+                            {featuredMovie.categories.slice(0, 4).map((category) => (
                               <a
                                 className="tag-topic"
                                 href={`/the-loai/${category.slug}`}
@@ -131,14 +124,23 @@ export function CloneHomeHero({ movies }: CloneHomeHeroProps) {
                             ))}
                           </div>
                           <div className="description lim-3">
-                            <p>{stripHtml(movie.description)}</p>
+                            <p>{stripHtml(featuredMovie.description)}</p>
                           </div>
                           <div className="touch">
-                            <a className="button-play" href={getWatchLink(movie.slug)}>
+                            <a className="button-play" href={getWatchLink(featuredMovie.slug)}>
                               <PlayArrowRoundedIcon sx={{ fontSize: 30 }} />
                             </a>
                             <div className="touch-group">
-                              <a className="item" href={getMovieLink(movie.slug)}>
+                              <button
+                                aria-label="Thêm vào danh sách yêu thích"
+                                className="item text-white"
+                                type="button"
+                              >
+                                <div className="inc-icon icon-20">
+                                  <FavoriteRoundedIcon sx={{ fontSize: 20 }} />
+                                </div>
+                              </button>
+                              <a className="item" href={getMovieLink(featuredMovie.slug)}>
                                 <div className="inc-icon icon-20">
                                   <InfoOutlinedIcon sx={{ fontSize: 20 }} />
                                 </div>
@@ -149,9 +151,7 @@ export function CloneHomeHero({ movies }: CloneHomeHeroProps) {
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+            </div>
           </div>
         </div>
         <div className="swiper swiper-initialized swiper-horizontal swiper-watch-progress top-slide-small swiper-backface-hidden">

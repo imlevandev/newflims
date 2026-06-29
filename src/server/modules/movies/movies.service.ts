@@ -2,6 +2,7 @@ import { AppError } from "@/server/common/errors/app-error";
 
 import type {
   CategoryDto,
+  HomepageApiFeedDto,
   HomepageFeedDto,
   MovieDetailDto,
   MovieListQueryDto,
@@ -20,6 +21,40 @@ export class MoviesService {
     private readonly externalMoviesRepository = new MoviesRepository(),
     private readonly ophimRepository = new OPhimRepository(),
   ) {}
+
+  private toHomepageMovie(movie: RemoteMovieDto): RemoteMovieDto {
+    return {
+      id: movie.id,
+      name: movie.name,
+      origin_name: movie.origin_name,
+      slug: movie.slug,
+      description: movie.description ? movie.description.slice(0, 700) : "",
+      thumbnail: movie.thumbnail,
+      poster: movie.poster,
+      banner: movie.banner,
+      banner_background: movie.banner_background,
+      type: movie.type,
+      status: movie.status,
+      trailer_url: movie.trailer_url,
+      episode_time: movie.episode_time,
+      episode_total: movie.episode_total,
+      episode_current: movie.episode_current,
+      quality: movie.quality,
+      publish_year: movie.publish_year,
+      imdb_rating: movie.imdb_rating,
+      rating: movie.rating,
+      image_name: movie.image_name,
+      is_recommended: movie.is_recommended,
+      latestEpisodes: (movie.latestEpisodes ?? []).slice(0, 1),
+      categories: (movie.categories ?? []).slice(0, 4),
+      regions: (movie.regions ?? []).slice(0, 2),
+      view_total: movie.view_total,
+      view_day: movie.view_day,
+      view_week: movie.view_week,
+      view_month: movie.view_month,
+      updatedAt: movie.updatedAt,
+    };
+  }
 
   async getHomepageFeed(): Promise<HomepageFeedDto> {
     const databaseFeed = await this.moviesDbRepository.getHomepageFeed(3);
@@ -117,6 +152,31 @@ export class MoviesService {
       name: item.name,
       slug: item.slug,
     }));
+  }
+
+  async getHomepageApiFeed(): Promise<HomepageApiFeedDto> {
+    const [hotMovies, collections, topics, menus, banners, comments] = await Promise.all([
+      this.externalMoviesRepository.getHotMovies(),
+      this.externalMoviesRepository.getAllHomepageCollections(3),
+      this.externalMoviesRepository.getHomepageTopics(),
+      this.externalMoviesRepository.getHomepageMenus(),
+      this.externalMoviesRepository.getHomepageBanners(),
+      this.externalMoviesRepository.getHomepageComments(),
+    ]);
+
+    return {
+      hotMovies: hotMovies.map((movie) => this.toHomepageMovie(movie)),
+      collections: collections.map((collection) => ({
+        ...collection,
+        movies: collection.movies
+          .slice(0, 10)
+          .map((movie) => this.toHomepageMovie(movie)),
+      })),
+      topics,
+      menus,
+      banners,
+      comments,
+    };
   }
 
   async getRegions(): Promise<RegionDto[]> {

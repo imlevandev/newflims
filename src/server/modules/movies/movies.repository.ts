@@ -2,7 +2,11 @@ import { AppError } from "@/server/common/errors/app-error";
 import { env } from "@/server/config/env";
 
 import type {
+  HomepageBannerDto,
+  HomepageCommentsDto,
+  HomepageMenuItemDto,
   HomepageMovieCollectionDto,
+  HomepageTopicsDto,
   RemoteMovieDto,
   RemoteMovieShowtimeDto,
 } from "./dto/movie.dto";
@@ -82,12 +86,64 @@ export class MoviesRepository {
     limit = 3,
     options?: RemoteFetchOptions,
   ) {
+    const payload = await this.getHomepageCollectionsPage(page, limit, options);
+
+    return payload.collections;
+  }
+
+  async getHomepageCollectionsPage(
+    page = 1,
+    limit = 3,
+    options?: RemoteFetchOptions,
+  ) {
     const payload = await this.fetchJson<HomepageListsResponse>(
       `/lists/homepageLists?page=${page}&limit=${limit}`,
       options,
     );
 
-    return payload.result.collections;
+    return payload.result;
+  }
+
+  async getAllHomepageCollections(limit = 3, options?: RemoteFetchOptions) {
+    const firstPage = await this.getHomepageCollectionsPage(1, limit, options);
+    const totalPages = Math.max(1, firstPage.totalPages || 1);
+
+    if (totalPages === 1) {
+      return firstPage.collections;
+    }
+
+    const restPages = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        this.getHomepageCollectionsPage(index + 2, limit, options),
+      ),
+    );
+
+    return [
+      ...firstPage.collections,
+      ...restPages.flatMap((page) => page.collections),
+    ];
+  }
+
+  async getHomepageTopics(options?: RemoteFetchOptions) {
+    const payload = await this.fetchJson<HomepageTopicsDto>(
+      "/topics/homepageTopics",
+      options,
+    );
+
+    return payload.result;
+  }
+
+  async getHomepageMenus(options?: RemoteFetchOptions) {
+    return this.fetchPlainJson<HomepageMenuItemDto[]>("/menus", options);
+  }
+
+  async getHomepageBanners(options?: RemoteFetchOptions) {
+    return this.fetchPlainJson<HomepageBannerDto[]>("/banners", options);
+  }
+
+  async getHomepageComments(options?: RemoteFetchOptions) {
+    const payload = await this.fetchJson<HomepageCommentsDto>("/comments/top", options);
+    return payload.result;
   }
 
   async getMovieShowtimes(

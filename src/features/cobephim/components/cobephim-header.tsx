@@ -4,11 +4,17 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TvRoundedIcon from "@mui/icons-material/TvRounded";
 import Link from "next/link";
 
-import { MoviesService } from "@/server/modules/movies/movies.service";
+import {
+  getCachedCategories,
+  getCachedRegions,
+} from "@/features/movie-catalog/lib/movie-catalog-data";
+import type { HomepageMenuItemDto } from "@/server/modules/movies/dto/movie.dto";
 
 import { HeaderScrollController } from "./header-scroll-controller";
 
-const moviesService = new MoviesService();
+interface CobePhimHeaderProps {
+  menus?: HomepageMenuItemDto[];
+}
 
 function chunkItems<T>(items: T[], columns: number) {
   const chunkSize = Math.ceil(items.length / columns);
@@ -25,14 +31,19 @@ function chunkItems<T>(items: T[], columns: number) {
   return chunks;
 }
 
-export async function CobePhimHeader() {
+function getMenuHref(item: HomepageMenuItemDto) {
+  return item.data && item.data.trim() ? item.data : "#";
+}
+
+export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
   const [categories, regions] = await Promise.all([
-    moviesService.getCategories(),
-    moviesService.getRegions(),
+    getCachedCategories(),
+    getCachedRegions(),
   ]);
 
   const categoryColumns = chunkItems(categories, 4);
   const regionColumns = chunkItems(regions, 4);
+  const menuItems = menus?.length ? menus : null;
 
   return (
     <>
@@ -44,7 +55,7 @@ export async function CobePhimHeader() {
                 alt="logo"
                 decoding="async"
                 height="40"
-                src="/cobephim/images/logo.svg"
+                src="/cobephim-v6/images/logo.svg"
                 width="100"
               />
             </Link>
@@ -66,63 +77,102 @@ export async function CobePhimHeader() {
 
             <div className="el-group">
               <div id="main_menu">
-                <div className="menu-item">
-                  <Link href="/danh-sach">Chủ đề</Link>
-                </div>
+                {menuItems ? (
+                  menuItems.map((item) => {
+                    const children = item.children ?? [];
 
-                <div className="menu-item menu-item-sub cobe-menu-dropdown">
-                  <button className="cobe-menu-dropdown__trigger" type="button">
-                    Thể loại
-                    <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
-                  </button>
+                    if (children.length === 0) {
+                      return (
+                        <div className="menu-item" key={item.key}>
+                          <a href={getMenuHref(item)} style={{ textTransform: "capitalize" }}>
+                            {item.label}
+                          </a>
+                        </div>
+                      );
+                    }
 
-                  <div className="cobe-mega-menu cobe-mega-menu--categories">
-                    {categoryColumns.map((column, columnIndex) => (
-                      <div className="cobe-mega-menu__col" key={`category-col-${columnIndex}`}>
-                        {column.map((category) => (
-                          <Link href={`/the-loai/${category.slug}`} key={category.id}>
-                            {category.name}
-                          </Link>
+                    return (
+                      <div className="menu-item menu-item-sub cobe-menu-dropdown" key={item.key}>
+                        <button className="cobe-menu-dropdown__trigger" type="button">
+                          {item.label}
+                          <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
+                        </button>
+
+                        <div className="cobe-mega-menu">
+                          {chunkItems(children, 4).map((column, columnIndex) => (
+                            <div className="cobe-mega-menu__col" key={`${item.key}-col-${columnIndex}`}>
+                              {column.map((child) => (
+                                <a href={getMenuHref(child)} key={child.key}>
+                                  {child.label}
+                                </a>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <>
+                    <div className="menu-item">
+                      <Link href="/danh-sach">Chủ đề</Link>
+                    </div>
+
+                    <div className="menu-item menu-item-sub cobe-menu-dropdown">
+                      <button className="cobe-menu-dropdown__trigger" type="button">
+                        Thể loại
+                        <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
+                      </button>
+
+                      <div className="cobe-mega-menu cobe-mega-menu--categories">
+                        {categoryColumns.map((column, columnIndex) => (
+                          <div className="cobe-mega-menu__col" key={`category-col-${columnIndex}`}>
+                            {column.map((category) => (
+                              <Link href={`/the-loai/${category.slug}`} key={category.id}>
+                                {category.name}
+                              </Link>
+                            ))}
+                          </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                <div className="menu-item">
-                  <Link href="/phim-le" style={{ textTransform: "capitalize" }}>
-                    Phim lẻ
-                  </Link>
-                </div>
+                    <div className="menu-item">
+                      <Link href="/phim-le" style={{ textTransform: "capitalize" }}>
+                        Phim lẻ
+                      </Link>
+                    </div>
 
-                <div className="menu-item">
-                  <Link href="/phim-bo" style={{ textTransform: "capitalize" }}>
-                    Phim bộ
-                  </Link>
-                </div>
+                    <div className="menu-item">
+                      <Link href="/phim-bo" style={{ textTransform: "capitalize" }}>
+                        Phim bộ
+                      </Link>
+                    </div>
 
-                <div className="menu-item menu-item-sub cobe-menu-dropdown">
-                  <button className="cobe-menu-dropdown__trigger" type="button">
-                    Quốc gia
-                    <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
-                  </button>
+                    <div className="menu-item menu-item-sub cobe-menu-dropdown">
+                      <button className="cobe-menu-dropdown__trigger" type="button">
+                        Quốc gia
+                        <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
+                      </button>
 
-                  <div className="cobe-mega-menu cobe-mega-menu--regions">
-                    {regionColumns.map((column, columnIndex) => (
-                      <div className="cobe-mega-menu__col" key={`region-col-${columnIndex}`}>
-                        {column.map((region) => (
-                          <Link href={`/quoc-gia/${region.slug}`} key={region.id}>
-                            {region.name}
-                          </Link>
+                      <div className="cobe-mega-menu cobe-mega-menu--regions">
+                        {regionColumns.map((column, columnIndex) => (
+                          <div className="cobe-mega-menu__col" key={`region-col-${columnIndex}`}>
+                            {column.map((region) => (
+                              <Link href={`/quoc-gia/${region.slug}`} key={region.id}>
+                                {region.name}
+                              </Link>
+                            ))}
+                          </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                <div className="menu-item">
-                  <Link href="/lich-chieu">Lịch chiếu</Link>
-                </div>
+                    <div className="menu-item">
+                      <Link href="/lich-chieu">Lịch chiếu</Link>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex-grow-1" />

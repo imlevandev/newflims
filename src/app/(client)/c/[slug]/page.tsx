@@ -2,8 +2,7 @@ import { MovieCatalogLayout } from "@/features/movie-catalog/components/movie-ca
 import { MovieGrid } from "@/features/movie-catalog/components/movie-grid";
 import { getHomepageCollectionOrNotFound } from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 interface CollectionPageProps {
   params: Promise<{ slug: string }>;

@@ -12,11 +12,10 @@ import {
 } from "@/features/movie-catalog/lib/movie-catalog-format";
 import {
   getMovieDetailOrNotFound,
-  moviesService,
+  getCachedHotMovies,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 interface MovieDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -36,7 +35,7 @@ export default async function MovieDetailPage({
 
   const [detail, hotMovies] = await Promise.all([
     getMovieDetailOrNotFound(slug),
-    moviesService.getHotMovies(),
+    getCachedHotMovies(),
   ]);
 
   const firstPlayable = getFirstPlayableEpisode(detail);

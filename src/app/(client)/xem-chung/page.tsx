@@ -1,12 +1,11 @@
 import { MovieCatalogLayout } from "@/features/movie-catalog/components/movie-catalog-layout";
 import { MovieGrid } from "@/features/movie-catalog/components/movie-grid";
-import { moviesService } from "@/features/movie-catalog/lib/movie-catalog-data";
+import { getCachedMovieList } from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function WatchTogetherPage() {
-  const movieList = await moviesService.getMovieList({
+  const movieList = await getCachedMovieList({
     limit: 24,
     page: 1,
     sort: "popular",

@@ -21,7 +21,6 @@ export function CobePhimMain({ feed, html }: CobePhimMainProps) {
     <>
       <HtmlFragment html={segments.prefix} />
       <CloneHomeFeed feed={feed} />
-      <HtmlFragment html={segments.community} />
     </>
   );
 }

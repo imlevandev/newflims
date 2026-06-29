@@ -10,11 +10,10 @@ import { WatchMovieSidePanel } from "@/features/movie-catalog/components/watch-m
 import { getSingleSearchValue } from "@/features/movie-catalog/lib/movie-catalog-format";
 import {
   getMovieDetailOrNotFound,
-  moviesService,
+  getCachedHotMovies,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 interface WatchMoviePageProps {
   params: Promise<{ slug: string }>;
@@ -34,7 +33,7 @@ export default async function WatchMoviePage({
 
   const [detail, hotMovies] = await Promise.all([
     getMovieDetailOrNotFound(slug),
-    moviesService.getHotMovies(),
+    getCachedHotMovies(),
   ]);
 
   const recommendations = hotMovies

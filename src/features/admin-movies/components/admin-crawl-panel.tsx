@@ -297,7 +297,7 @@ export function AdminCrawlPanel({
         <article className="admin-crawl-helper">
           <h3>Luồng dữ liệu</h3>
           <ul className="plain-list">
-            <li>OPhim: phim, taxonomy, episodes, embed_url, m3u8_url</li>
+            <li>OPhim: phim, taxonomy, episodes, m3u8_url</li>
             <li>darkbytes: hot slider, homepage lists</li>
             <li>MongoDB: Movie, Episode, Category, Region, HomepageList, CrawlLog</li>
           </ul>

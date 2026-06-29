@@ -2,10 +2,13 @@ import { CategoryFilter } from "@/features/movie-catalog/components/category-fil
 import { MovieCatalogLayout } from "@/features/movie-catalog/components/movie-catalog-layout";
 import { MovieGrid } from "@/features/movie-catalog/components/movie-grid";
 import { getSingleSearchValue } from "@/features/movie-catalog/lib/movie-catalog-format";
-import { moviesService } from "@/features/movie-catalog/lib/movie-catalog-data";
+import {
+  getCachedCategories,
+  getCachedMovieList,
+  getCachedRegions,
+} from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 interface MovieSinglePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -21,9 +24,9 @@ export default async function SingleMoviesPage({
   const page = Number(getSingleSearchValue(resolvedSearchParams.page, "1")) || 1;
 
   const [categories, regions, movieList] = await Promise.all([
-    moviesService.getCategories(),
-    moviesService.getRegions(),
-    moviesService.getMovieList({
+    getCachedCategories(),
+    getCachedRegions(),
+    getCachedMovieList({
       category,
       country,
       page,

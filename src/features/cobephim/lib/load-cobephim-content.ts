@@ -3,12 +3,14 @@ import path from "path";
 
 type CobePhimFragments = {
   footer: string;
-  header: string;
+  home: string;
   main: string;
   mobileNav: string;
 };
 
 let cache: CobePhimFragments | null = null;
+let homeCache: string | null = null;
+let mobileNavCache: string | null = null;
 
 function normalizeHeaderHtml(html: string) {
   return html
@@ -75,10 +77,28 @@ export function loadCobePhimContent(): CobePhimFragments {
 
   cache = {
     footer: readFragment("footer.html"),
-    header: readFragment("header.html"),
+    home: readFragment("home-static.html"),
     main: readFragment("main.html"),
     mobileNav: readFragment("mobile-nav.html"),
   };
 
   return cache;
+}
+
+export function loadCobePhimStaticHomeContent() {
+  if (homeCache) {
+    return homeCache;
+  }
+
+  homeCache = readFragment("home-static.html");
+  return homeCache;
+}
+
+export function loadCobePhimMobileNavContent() {
+  if (mobileNavCache) {
+    return mobileNavCache;
+  }
+
+  mobileNavCache = readFragment("mobile-nav.html");
+  return mobileNavCache;
 }
