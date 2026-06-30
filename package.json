@@ -14,6 +14,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.1.1",
+    "@vercel/analytics": "^2.0.1",
     "hls.js": "^1.6.16",
     "mongoose": "^8.19.3",
     "next": "^16.2.9",
