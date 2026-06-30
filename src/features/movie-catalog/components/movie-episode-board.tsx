@@ -81,12 +81,14 @@ export function MovieEpisodeBoard({
         <div className="movie-episode-board__grid">
           {activeServer.items.map((item, index) => {
             const isPlayable = isEpisodePlayable(item);
+            const isEmbedOnly = Boolean(item.embed && !item.m3u8);
 
             return (
               <Link
                 className={[
                   item.slug === currentEpisodeSlug ? "is-active" : "",
                   !isPlayable ? "is-pending" : "",
+                  isEmbedOnly && isPlayable ? "is-embed" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}

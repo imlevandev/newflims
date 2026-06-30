@@ -248,7 +248,13 @@ export function VideoPlayer({
 
     if (selectedEpisode) {
       if (!isEpisodePlayable(selectedEpisode)) {
-        setPlayerNotice("Tập này chưa có nguồn phát. Bạn có thể chọn tập khác ở danh sách bên dưới.");
+        setPlayerNotice(
+          selectedEpisode.embed && !selectedEpisode.m3u8
+            ? "Tập này sẽ phát qua iframe embed."
+            : "Tập này chưa có nguồn phát. Bạn có thể chọn tập khác ở danh sách bên dưới.",
+        );
+      } else {
+        setPlayerNotice("");
       }
 
       return;
@@ -283,8 +289,9 @@ export function VideoPlayer({
 
       setActiveServerId(nextServer.id);
       setActiveEpisodeSlug(nextEpisode.slug);
+      const playable = isEpisodePlayable(nextEpisode);
       setPlayerNotice(
-        isEpisodePlayable(nextEpisode)
+        playable
           ? ""
           : "Tập này chưa có nguồn phát. Bạn có thể chọn tập khác ở danh sách bên dưới.",
       );
@@ -426,6 +433,8 @@ export function VideoPlayer({
 
     return Math.min((currentTime / duration) * 100, 100);
   }, [currentTime, duration]);
+
+  const useEmbedFallback = activeEpisode && !activeEpisode.m3u8 && activeEpisode.embed;
 
   if (!activeServer || !activeEpisode) {
     return (
@@ -659,12 +668,20 @@ export function VideoPlayer({
               </div>
             </div>
           </>
+        ) : useEmbedFallback ? (
+          <iframe
+            allowFullScreen
+            className="movie-player__embed"
+            referrerPolicy="no-referrer"
+            src={activeEpisode.embed}
+            title={activeEpisode.name}
+          />
         ) : (
           <div className="movie-player-empty">
-            <h3>Tập này chưa có nguồn xem trực tiếp</h3>
+            <h3>Tập này chưa có nguồn xem</h3>
             <p>
-              Tập này vẫn chưa phát sóng hoặc chưa có `m3u8`.
-              Hãy chọn một tập khác đã phát ở bên dưới.
+              Tập này chưa có link phát trực tiếp hoặc embed.
+              Hãy chọn một tập khác ở bên dưới.
             </p>
           </div>
         )}

@@ -1820,3 +1820,25 @@
     align-items: flex-start;
   }
 }
+
+
+/* --- Embed iframe fallback --- */
+.movie-player__embed {
+  background: #000;
+}
+
+/* Episode board: embed badge */
+.movie-episode-board__grid a.is-embed::after {
+  content: "embed";
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}

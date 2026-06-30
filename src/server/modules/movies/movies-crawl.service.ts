@@ -219,7 +219,44 @@ export class MoviesCrawlService {
       detailPayload.episodes ?? [],
     );
 
+    // Check if episodes have any embed/m3u8 sources
+    const hasAnySource = episodeWrites.some((server) =>
+      server.items.some((item) => item.embed || item.m3u8),
+    );
+
     await this.moviesDbRepository.replaceEpisodes(storedMovie._id, episodeWrites);
+
+    // Fallback: if OPhim episodes are empty, scrape cobephim.pw for embed URL
+    if (!hasAnySource) {
+      const fallbackEmbed = await this.scrapeEmbedFallback(slug);
+
+      if (fallbackEmbed) {
+        await this.moviesDbRepository.replaceEpisodes(storedMovie._id, [
+          {
+            created: new Date(),
+            items: [
+              {
+                air_date: null,
+                created: new Date(),
+                duration: 0,
+                embed: fallbackEmbed,
+                filename: "",
+                m3u8: "",
+                name: "Full",
+                size: 0,
+                slug: "full",
+                source_error: "",
+                source_status: "active" as const,
+                thumbnail: "",
+              },
+            ],
+            movie_id: storedMovie._id,
+            server_name: "CobePhim",
+            server_slug: "cobephim",
+          },
+        ]);
+      }
+    }
 
     return {
       created: !alreadyExists,
@@ -347,6 +384,112 @@ export class MoviesCrawlService {
     };
   }
 
+  private async scrapeEmbedFallback(slug: string): Promise<string | null> {
+    try {
+      const response = await fetch(`https://cobephim.pw/xem-phim/${slug}`, {
+        headers: {
+          "Accept": "text/html",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const html = await response.text();
+
+      // Extract iframe src
+      const iframeMatch = html.match(/<iframe[^>]*src="(https?:\/\/[^"]*(?:stream|embed|video)[^"]*)"[^>]*>/i);
+      if (iframeMatch) {
+        return iframeMatch[1];
+      }
+
+      // Also try stream URL pattern
+      const streamMatch = html.match(/"(https?:\/\/[^"]*stream[^"]*\/video\/[^"]*)"/i);
+      if (streamMatch) {
+        return streamMatch[1];
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async enrichMovieFromDarkbytes(slug: string) {
+    try {
+      const detail = await this.darkbytesRepository.getMovieBySlug(slug, {
+        cache: "no-store",
+        revalidate: false,
+      });
+
+      if (!detail?.result?.movie) {
+        return null;
+      }
+
+      const dbMovie = detail.result.movie as Record<string, unknown>;
+
+      const enrichment: Record<string, unknown> = {};
+
+      if (Array.isArray(dbMovie.actors) && dbMovie.actors.length > 0) {
+        enrichment.actor = (dbMovie.actors as Array<Record<string, unknown>>)
+          .filter((a) => a.name)
+          .map((a) => String(a.name));
+      }
+
+      if (Array.isArray(dbMovie.directors) && dbMovie.directors.length > 0) {
+        enrichment.director = (dbMovie.directors as Array<Record<string, unknown>>)
+          .filter((d) => d.name)
+          .map((d) => String(d.name));
+      }
+
+      if (typeof dbMovie.view_total === "number") {
+        enrichment.view_total = dbMovie.view_total;
+      }
+      if (typeof dbMovie.view_day === "number") {
+        enrichment.view_day = dbMovie.view_day;
+      }
+      if (typeof dbMovie.view_week === "number") {
+        enrichment.view_week = dbMovie.view_week;
+      }
+      if (typeof dbMovie.view_month === "number") {
+        enrichment.view_month = dbMovie.view_month;
+      }
+
+      if (typeof dbMovie.language === "string" && dbMovie.language) {
+        enrichment.lang = dbMovie.language;
+      }
+
+      if (typeof dbMovie.imdb_id === "string" && dbMovie.imdb_id) {
+        enrichment.imdb = {
+          id: dbMovie.imdb_id,
+          vote_average: Number(dbMovie.imdb_rating) || 0,
+          vote_count: Number(dbMovie.rating_count) || 0,
+        };
+      }
+
+      if (typeof dbMovie.tmdb_id === "string" && dbMovie.tmdb_id) {
+        enrichment.tmdb = {
+          id: dbMovie.tmdb_id,
+          season: 1,
+          type: (dbMovie.type as string) || "",
+          vote_average: Number(dbMovie.rating_star) || 0,
+          vote_count: Number(dbMovie.rating_count) || 0,
+        };
+      }
+
+      await this.moviesDbRepository.upsertMovie({
+        ...enrichment,
+        slug,
+      });
+
+      return enrichment;
+    } catch {
+      return null;
+    }
+  }
+
   async crawl(request: CrawlRequestDto): Promise<CrawlResultDto> {
     const pageStart = Math.max(1, request.pageStart ?? 1);
     const pageEnd = Math.max(pageStart, request.pageEnd ?? pageStart);
@@ -372,12 +515,24 @@ export class MoviesCrawlService {
       );
     }
 
+    const movieSlug = crawlMode === "slug" ? request.slug?.trim() || undefined : undefined;
+
+    if (crawlMode === "slug" && !movieSlug) {
+      throw new AppError(
+        "Thiếu slug phim để crawl",
+        400,
+        "CRAWL_SLUG_REQUIRED",
+      );
+    }
+
     const crawlSource =
-      crawlMode === "category"
-        ? `ophim+darkbytes:category:${categorySlug}`
-        : crawlMode === "country"
-          ? `ophim+darkbytes:country:${countrySlug}`
-          : "ophim+darkbytes";
+      crawlMode === "slug"
+        ? `ophim:slug:${movieSlug}`
+        : crawlMode === "category"
+          ? `ophim+darkbytes:category:${categorySlug}`
+          : crawlMode === "country"
+            ? `ophim+darkbytes:country:${countrySlug}`
+            : "ophim+darkbytes";
 
     const crawlLog = await this.moviesDbRepository.createCrawlLog({
       page_end: pageEnd,
@@ -386,20 +541,49 @@ export class MoviesCrawlService {
       started: new Date(),
       status: "running",
       type:
-        crawlMode === "all" && pageStart === pageEnd && pageStart === 1
-          ? "incremental"
-          : "single",
+        crawlMode === "slug"
+          ? "single"
+          : crawlMode === "all" && pageStart === pageEnd && pageStart === 1
+            ? "incremental"
+            : "single",
     });
 
     try {
       const taxonomyResult = await this.syncTaxonomies();
-      const movieResult = await this.syncOPhimMoviesByFilter({
-        categorySlug,
-        countrySlug,
-        pageEnd,
-        pageStart,
-      });
-      const homepageResult = await this.syncDarkbytesHomepage();
+
+      let movieResult: SyncMoviesResult;
+      let homepageResult: { hotMoviesSynced: number; homepageListsSynced: number };
+
+      if (crawlMode === "slug") {
+        const syncResult = await this.syncMovieBySlug(movieSlug!);
+        movieResult = {
+          crawlErrors: [],
+          errorMovies: syncResult.created || syncResult.updated ? 0 : 1,
+          moviesCreated: syncResult.created ? 1 : 0,
+          moviesUpdated: syncResult.updated ? 1 : 0,
+          pagesProcessed: 0,
+        };
+
+        if (!syncResult.created && !syncResult.updated) {
+          movieResult.crawlErrors.push({
+            message: `Không tìm thấy phim với slug "${movieSlug}"`,
+            slug: movieSlug!,
+          });
+        } else {
+          // Enrich movie metadata from darkbytes
+          await this.enrichMovieFromDarkbytes(movieSlug!);
+        }
+
+        homepageResult = { hotMoviesSynced: 0, homepageListsSynced: 0 };
+      } else {
+        movieResult = await this.syncOPhimMoviesByFilter({
+          categorySlug,
+          countrySlug,
+          pageEnd,
+          pageStart,
+        });
+        homepageResult = await this.syncDarkbytesHomepage();
+      }
 
       const result: CrawlResultDto = {
         ...homepageResult,

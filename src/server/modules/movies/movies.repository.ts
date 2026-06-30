@@ -180,4 +180,10 @@ export class MoviesRepository {
       options,
     );
   }
+
+  async getMovieBySlug(slug: string, options?: RemoteFetchOptions) {
+    return this.fetchJson<{
+      movie: Record<string, unknown>;
+    }>(`/movies/by-slug/${slug}`, options);
+  }
 }

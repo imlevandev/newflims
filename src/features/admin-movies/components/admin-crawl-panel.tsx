@@ -39,65 +39,43 @@ const initialFormState: CrawlFormState = {
 
 function normalizePageValue(input: string) {
   const numericValue = Number(input);
-
-  if (!Number.isFinite(numericValue) || numericValue < 1) {
-    return 1;
-  }
-
+  if (!Number.isFinite(numericValue) || numericValue < 1) return 1;
   return Math.floor(numericValue);
 }
 
-export function AdminCrawlPanel({
-  categories,
-  regions,
-}: AdminCrawlPanelProps) {
+export function AdminCrawlPanel({ categories, regions }: AdminCrawlPanelProps) {
   const [form, setForm] = useState<CrawlFormState>(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<CrawlResultDto | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [responseMeta, setResponseMeta] = useState<{
-    finishedAt: string;
-    mode: string;
-  } | null>(null);
+  const [finishedAt, setFinishedAt] = useState("");
 
-  const normalizedPageStart = useMemo(
-    () => normalizePageValue(form.pageStart),
-    [form.pageStart],
-  );
+  const normalizedPageStart = useMemo(() => normalizePageValue(form.pageStart), [form.pageStart]);
   const normalizedPageEnd = useMemo(
     () => Math.max(normalizedPageStart, normalizePageValue(form.pageEnd)),
     [form.pageEnd, normalizedPageStart],
   );
 
-  const summaryItems = result
-    ? [
-        { label: "Phim tạo mới", value: result.moviesCreated },
-        { label: "Phim cập nhật", value: result.moviesUpdated },
-        { label: "Trang đã xử lý", value: result.pagesProcessed },
-        { label: "Phim lỗi", value: result.errorMovies },
-        { label: "Thể loại đồng bộ", value: result.categoriesSynced },
-        { label: "Quốc gia đồng bộ", value: result.regionsSynced },
-        { label: "Danh sách trang chủ", value: result.homepageListsSynced },
-      ]
-    : [];
+  const isFilterInvalid =
+    (form.crawlMode === "category" && !form.categorySlug) ||
+    (form.crawlMode === "country" && !form.countrySlug);
+
+  const canSubmit = form.secretKey.trim() && !isSubmitting && !isFilterInvalid;
 
   function getModeLabel() {
     if (form.crawlMode === "category") {
-      const category = categories.find((item) => item.slug === form.categorySlug);
-      return category ? `Theo thể loại: ${category.name}` : "Theo thể loại";
+      const cat = categories.find((c) => c.slug === form.categorySlug);
+      return cat ? `Thể loại: ${cat.name}` : "Thể loại";
     }
-
     if (form.crawlMode === "country") {
-      const region = regions.find((item) => item.slug === form.countrySlug);
-      return region ? `Theo quốc gia: ${region.name}` : "Theo quốc gia";
+      const reg = regions.find((r) => r.slug === form.countrySlug);
+      return reg ? `Quốc gia: ${reg.name}` : "Quốc gia";
     }
-
-    return "Toàn bộ dữ liệu";
+    return "Toàn bộ";
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setIsSubmitting(true);
     setErrorMessage("");
     setResult(null);
@@ -111,10 +89,8 @@ export function AdminCrawlPanel({
         },
         body: JSON.stringify({
           crawlMode: form.crawlMode,
-          categorySlug:
-            form.crawlMode === "category" ? form.categorySlug : undefined,
-          countrySlug:
-            form.crawlMode === "country" ? form.countrySlug : undefined,
+          categorySlug: form.crawlMode === "category" ? form.categorySlug : undefined,
+          countrySlug: form.crawlMode === "country" ? form.countrySlug : undefined,
           pageStart: normalizedPageStart,
           pageEnd: normalizedPageEnd,
         }),
@@ -126,215 +102,210 @@ export function AdminCrawlPanel({
 
       if (!response.ok || !payload.success) {
         setErrorMessage(
-          payload.success ? "Không thể chạy crawl phim." : payload.error.message,
+          payload.success ? "Không thể chạy crawl." : payload.error.message,
         );
         return;
       }
 
       setResult(payload.data);
-      setResponseMeta({
-        finishedAt: new Date().toLocaleString("vi-VN"),
-        mode:
-          form.crawlMode === "all"
-            ? normalizedPageStart === 1 && normalizedPageEnd === 1
-              ? "Toàn bộ - trang 1"
-              : `Toàn bộ - trang ${normalizedPageStart} đến ${normalizedPageEnd}`
-            : `${getModeLabel()} - trang ${normalizedPageStart} đến ${normalizedPageEnd}`,
-      });
+      setFinishedAt(new Date().toLocaleString("vi-VN"));
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Không thể kết nối tới API crawl.",
+        error instanceof Error ? error.message : "Không thể kết nối tới API crawl.",
       );
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const isFilterInvalid =
-    (form.crawlMode === "category" && !form.categorySlug) ||
-    (form.crawlMode === "country" && !form.countrySlug);
-
   return (
-    <section className="panel admin-crawl-panel">
-      <div className="admin-crawl-panel__intro">
+    <section className="crawl-panel crawl-panel--batch">
+      {/* Header */}
+      <div className="crawl-panel__header">
+        <div className="crawl-panel__icon crawl-panel__icon--batch">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="7" height="7" x="3" y="3" rx="1" />
+            <rect width="7" height="7" x="14" y="3" rx="1" />
+            <rect width="7" height="7" x="3" y="14" rx="1" />
+            <rect width="7" height="7" x="14" y="14" rx="1" />
+          </svg>
+        </div>
         <div>
-          <div className="eyebrow">Crawl cơ bản</div>
-          <h2>Chạy crawl phim từ OPhim và darkbytes</h2>
-          <p className="muted">
-            Dùng panel này để crawl toàn bộ, theo thể loại hoặc theo quốc gia.
-            Dữ liệu sau khi chuẩn hóa sẽ được lưu vào MongoDB.
+          <div className="crawl-panel__eyebrow">Crawl hàng loạt</div>
+          <h3 className="crawl-panel__title">Crawl nhiều phim theo trang</h3>
+          <p className="crawl-panel__desc">
+            Crawl toàn bộ, theo thể loại hoặc quốc gia với phạm vi trang tùy chỉnh.
+            Dữ liệu được chuẩn hóa và lưu vào MongoDB.
           </p>
         </div>
-
-        <div className="admin-crawl-panel__chips">
-          <span className="chip">MongoDB storage</span>
-          <span className="chip">Bảo vệ bằng secret key</span>
-          <span className="chip">Lọc theo thể loại hoặc quốc gia</span>
-        </div>
       </div>
 
-      <form className="admin-crawl-form" onSubmit={handleSubmit}>
-        <label>
-          <span>Secret key</span>
-          <input
-            autoComplete="off"
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                secretKey: event.target.value,
-              }))
-            }
-            placeholder="Nhập CRAWL_SECRET_KEY"
-            type="password"
-            value={form.secretKey}
-          />
-        </label>
+      {/* Form */}
+      <form className="crawl-panel__form" onSubmit={handleSubmit}>
+        <div className="crawl-panel__form-row">
+          <label className="crawl-panel__field">
+            <span className="crawl-panel__label">Secret Key</span>
+            <input
+              autoComplete="off"
+              className="crawl-panel__input"
+              onChange={(e) => setForm((c) => ({ ...c, secretKey: e.target.value }))}
+              placeholder="CRAWL_SECRET_KEY"
+              type="password"
+              value={form.secretKey}
+            />
+          </label>
 
-        <label>
-          <span>Chế độ crawl</span>
-          <select
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                crawlMode: event.target.value as CrawlMode,
-                categorySlug:
-                  event.target.value === "category" ? current.categorySlug : "",
-                countrySlug:
-                  event.target.value === "country" ? current.countrySlug : "",
-              }))
-            }
-            value={form.crawlMode}
-          >
-            <option value="all">Toàn bộ</option>
-            <option value="category">Theo thể loại</option>
-            <option value="country">Theo quốc gia</option>
-          </select>
-        </label>
+          <label className="crawl-panel__field">
+            <span className="crawl-panel__label">Chế độ</span>
+            <select
+              className="crawl-panel__input"
+              onChange={(e) =>
+                setForm((c) => ({
+                  ...c,
+                  crawlMode: e.target.value as CrawlMode,
+                  categorySlug: e.target.value === "category" ? c.categorySlug : "",
+                  countrySlug: e.target.value === "country" ? c.countrySlug : "",
+                }))
+              }
+              value={form.crawlMode}
+            >
+              <option value="all">Toàn bộ</option>
+              <option value="category">Theo thể loại</option>
+              <option value="country">Theo quốc gia</option>
+            </select>
+          </label>
 
-        <label>
-          <span>Thể loại</span>
-          <select
-            disabled={form.crawlMode !== "category"}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                categorySlug: event.target.value,
-              }))
-            }
-            value={form.categorySlug}
-          >
-            <option value="">Chọn thể loại</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.slug}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          {form.crawlMode === "category" ? (
+            <label className="crawl-panel__field">
+              <span className="crawl-panel__label">Thể loại</span>
+              <select
+                className="crawl-panel__input"
+                onChange={(e) => setForm((c) => ({ ...c, categorySlug: e.target.value }))}
+                value={form.categorySlug}
+              >
+                <option value="">Chọn thể loại</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                ))}
+              </select>
+            </label>
+          ) : form.crawlMode === "country" ? (
+            <label className="crawl-panel__field">
+              <span className="crawl-panel__label">Quốc gia</span>
+              <select
+                className="crawl-panel__input"
+                onChange={(e) => setForm((c) => ({ ...c, countrySlug: e.target.value }))}
+                value={form.countrySlug}
+              >
+                <option value="">Chọn quốc gia</option>
+                {regions.map((reg) => (
+                  <option key={reg.id} value={reg.slug}>{reg.name}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
-        <label>
-          <span>Quốc gia</span>
-          <select
-            disabled={form.crawlMode !== "country"}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                countrySlug: event.target.value,
-              }))
-            }
-            value={form.countrySlug}
-          >
-            <option value="">Chọn quốc gia</option>
-            {regions.map((region) => (
-              <option key={region.id} value={region.slug}>
-                {region.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="crawl-panel__field crawl-panel__field--sm">
+            <span className="crawl-panel__label">Trang bắt đầu</span>
+            <input
+              className="crawl-panel__input"
+              min={1}
+              onChange={(e) => setForm((c) => ({ ...c, pageStart: e.target.value }))}
+              type="number"
+              value={form.pageStart}
+            />
+          </label>
 
-        <label>
-          <span>Trang bắt đầu</span>
-          <input
-            min={1}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                pageStart: event.target.value,
-              }))
-            }
-            type="number"
-            value={form.pageStart}
-          />
-        </label>
+          <label className="crawl-panel__field crawl-panel__field--sm">
+            <span className="crawl-panel__label">Trang kết thúc</span>
+            <input
+              className="crawl-panel__input"
+              min={1}
+              onChange={(e) => setForm((c) => ({ ...c, pageEnd: e.target.value }))}
+              type="number"
+              value={form.pageEnd}
+            />
+          </label>
 
-        <label>
-          <span>Trang kết thúc</span>
-          <input
-            min={1}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                pageEnd: event.target.value,
-              }))
-            }
-            type="number"
-            value={form.pageEnd}
-          />
-        </label>
-
-        <button
-          disabled={isSubmitting || !form.secretKey.trim() || isFilterInvalid}
-          type="submit"
-        >
-          {isSubmitting ? "Đang crawl..." : "Chạy crawl"}
-        </button>
+          <button className="crawl-panel__btn crawl-panel__btn--batch" disabled={!canSubmit} type="submit">
+            {isSubmitting ? (
+              <span className="crawl-panel__spinner" />
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            )}
+            {isSubmitting ? "Đang crawl..." : "Chạy crawl"}
+          </button>
+        </div>
       </form>
 
-      <div className="admin-crawl-helper-grid">
-        <article className="admin-crawl-helper">
-          <h3>Luồng dữ liệu</h3>
-          <ul className="plain-list">
-            <li>OPhim: phim, taxonomy, episodes, m3u8_url</li>
-            <li>darkbytes: hot slider, homepage lists</li>
-            <li>MongoDB: Movie, Episode, Category, Region, HomepageList, CrawlLog</li>
-          </ul>
-        </article>
-
-        <article className="admin-crawl-helper">
-          <h3>Thiết lập nhanh</h3>
-          <ul className="plain-list">
-            <li>Toàn bộ 1-1: cập nhật nhanh trang đầu phim mới nhất</li>
-            <li>Thể loại 1-3: seed nhanh một nhóm phim theo category</li>
-            <li>Quốc gia 1-5: gom phim theo thị trường như Hàn Quốc hoặc Trung Quốc</li>
-          </ul>
-        </article>
+      {/* Tags */}
+      <div className="crawl-panel__tags">
+        <span className="crawl-panel__tag">OPhim + darkbytes</span>
+        <span className="crawl-panel__tag">Nhiều phim</span>
+        <span className="crawl-panel__tag">Homepage lists</span>
+        <span className="crawl-panel__tag">Taxonomy tự động</span>
       </div>
 
-      {errorMessage ? <p className="error-message">{errorMessage}</p> : null}
+      {/* Error */}
+      {errorMessage ? (
+        <div className="crawl-panel__error">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {errorMessage}
+        </div>
+      ) : null}
 
-      {result && responseMeta ? (
-        <div className="admin-crawl-result">
-          <div className="status-header">
+      {/* Result */}
+      {result ? (
+        <div className="crawl-panel__result">
+          <div className="crawl-panel__result-header">
             <div>
-              <div className="eyebrow">Lần chạy gần nhất</div>
-              <h3>Kết quả crawl thành công</h3>
-              <p className="muted">
-                {responseMeta.mode} - hoàn tất lúc {responseMeta.finishedAt}
+              <span className="crawl-panel__result-badge crawl-panel__result-badge--ok">Hoàn tất</span>
+              <p className="crawl-panel__result-meta">
+                {getModeLabel()} &middot; Trang {normalizedPageStart}–{normalizedPageEnd} &middot; {finishedAt}
               </p>
             </div>
-            <span className="badge badge-live">Hoàn tất</span>
           </div>
 
-          <div className="admin-crawl-result__grid">
-            {summaryItems.map((item) => (
-              <article className="admin-crawl-stat" key={item.label}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </article>
-            ))}
+          <div className="crawl-panel__stats">
+            <div className={`crawl-panel__stat ${result.moviesCreated > 0 ? "crawl-panel__stat--accent" : ""}`}>
+              <span className="crawl-panel__stat-label">Tạo mới</span>
+              <strong className="crawl-panel__stat-value">{result.moviesCreated}</strong>
+            </div>
+            <div className={`crawl-panel__stat ${result.moviesUpdated > 0 ? "crawl-panel__stat--accent" : ""}`}>
+              <span className="crawl-panel__stat-label">Cập nhật</span>
+              <strong className="crawl-panel__stat-value">{result.moviesUpdated}</strong>
+            </div>
+            <div className="crawl-panel__stat">
+              <span className="crawl-panel__stat-label">Trang đã xử lý</span>
+              <strong className="crawl-panel__stat-value">{result.pagesProcessed}</strong>
+            </div>
+            <div className={`crawl-panel__stat ${result.errorMovies > 0 ? "crawl-panel__stat--danger" : ""}`}>
+              <span className="crawl-panel__stat-label">Lỗi</span>
+              <strong className="crawl-panel__stat-value">{result.errorMovies}</strong>
+            </div>
+            <div className="crawl-panel__stat">
+              <span className="crawl-panel__stat-label">Thể loại ĐB</span>
+              <strong className="crawl-panel__stat-value">{result.categoriesSynced}</strong>
+            </div>
+            <div className="crawl-panel__stat">
+              <span className="crawl-panel__stat-label">Quốc gia ĐB</span>
+              <strong className="crawl-panel__stat-value">{result.regionsSynced}</strong>
+            </div>
+            <div className="crawl-panel__stat">
+              <span className="crawl-panel__stat-label">Homepage</span>
+              <strong className="crawl-panel__stat-value">{result.homepageListsSynced}</strong>
+            </div>
+            <div className="crawl-panel__stat">
+              <span className="crawl-panel__stat-label">Hot phim</span>
+              <strong className="crawl-panel__stat-value">{result.hotMoviesSynced}</strong>
+            </div>
           </div>
         </div>
       ) : null}

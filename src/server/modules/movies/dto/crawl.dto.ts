@@ -125,10 +125,11 @@ export interface OPhimMovieDetailResponseDto {
 export interface CrawlRequestDto {
   categorySlug?: string;
   countrySlug?: string;
-  crawlMode?: "all" | "category" | "country";
+  crawlMode?: "all" | "category" | "country" | "slug";
   pageEnd?: number;
   pageStart?: number;
   secretKey?: string;
+  slug?: string;
 }
 
 export interface CrawlResultDto {

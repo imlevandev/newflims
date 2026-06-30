@@ -48,7 +48,7 @@ export function buildHref(
 }
 
 export function isEpisodePlayable(episode?: MovieEpisodeSourceDto | null) {
-  return Boolean(episode?.m3u8);
+  return Boolean(episode?.m3u8 || episode?.embed);
 }
 
 export function getFirstPlayableEpisodeFromServer(server?: MovieEpisodeServerDto | null) {
