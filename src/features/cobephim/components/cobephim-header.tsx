@@ -7,6 +7,7 @@ import {
 import type { HomepageMenuItemDto } from "@/server/modules/movies/dto/movie.dto";
 
 import { HeaderScrollController } from "./header-scroll-controller";
+import { LoginButton } from "./login-button";
 
 interface CobePhimHeaderProps {
   menus?: HomepageMenuItemDto[];
@@ -235,12 +236,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
               </div>
 
               <div id="main_user">
-                <Link aria-label="Đăng nhập" className="button-user button-login" href="/login">
-                  <div className="line-center">
-                    <UserIcon />
-                    <span>Thành viên</span>
-                  </div>
-                </Link>
+                <LoginButton />
               </div>
             </div>
           </div>

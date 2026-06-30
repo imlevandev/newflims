@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { MovieCatalogLayout } from "@/features/movie-catalog/components/movie-catalog-layout";
 import { MovieEpisodeBoard } from "@/features/movie-catalog/components/movie-episode-board";
@@ -11,6 +12,8 @@ import {
   getMovieDetailOrNotFound,
   getCachedHotMovies,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
+import { MoviesCrawlService } from "@/server/modules/movies/movies-crawl.service";
+import { AppError } from "@/server/common/errors/app-error";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +38,16 @@ function CommentIcon() {
   );
 }
 
+async function tryAutoCrawl(slug: string) {
+  try {
+    const crawlService = new MoviesCrawlService();
+    const result = await crawlService.crawl({ crawlMode: "slug", slug: slug });
+    return result.moviesCreated > 0 || result.moviesUpdated > 0;
+  } catch {
+    return false;
+  }
+}
+
 export default async function WatchMoviePage({
   params,
   searchParams,
@@ -46,11 +59,24 @@ export default async function WatchMoviePage({
   const initialEpisodeSlug =
     getSingleSearchValue(resolvedSearchParams.episode) || undefined;
 
-  const [detail, hotMovies] = await Promise.all([
-    getMovieDetailOrNotFound(slug),
-    getCachedHotMovies(),
-  ]);
+  // Try to get movie; auto-crawl on demand if not found
+  let detail;
+  try {
+    detail = await getMovieDetailOrNotFound(slug);
+  } catch (error) {
+    if (error instanceof AppError && error.code === "MOVIE_NOT_FOUND") {
+      const crawled = await tryAutoCrawl(slug);
+      if (crawled) {
+        detail = await getMovieDetailOrNotFound(slug);
+      } else {
+        notFound();
+      }
+    } else {
+      throw error;
+    }
+  }
 
+  const hotMovies = await getCachedHotMovies();
   const recommendations = hotMovies
     .filter((movie) => movie.slug !== detail.movie.slug)
     .slice(0, 4);

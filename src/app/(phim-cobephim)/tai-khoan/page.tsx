@@ -1,0 +1,40 @@
+import { CobePhimHeader } from "@/features/cobephim/components/cobephim-header";
+import { CobePhimFooter } from "@/features/cobephim/components/cobephim-footer";
+import { CobePhimMobileNav } from "@/features/cobephim/components/cobephim-mobile-nav";
+import { AccountPanel } from "@/features/cobephim/components/account-panel";
+import { loadCobePhimContent } from "@/features/cobephim/lib/load-cobephim-content";
+import "@/features/cobephim/content/cobephim-overrides.css";
+
+const cobeStyles = [
+  "https://cobephim.pw/_next/static/css/7e7d96b1e6991756.css",
+  "https://cobephim.pw/_next/static/css/b3d2bc2a41fef9ee.css",
+  "https://cobephim.pw/_next/static/css/bab9322a06b792b3.css",
+  "https://cobephim.pw/_next/static/css/fb9d7258d25d1688.css",
+  "https://cobephim.pw/_next/static/css/8702ba90b2197423.css",
+  "https://cobephim.pw/_next/static/css/2e1770d6816c0de0.css",
+  "https://cobephim.pw/_next/static/css/cd6d44333c72200a.css",
+  "https://cobephim.pw/_next/static/css/a2d010616312a546.css",
+  "https://cobephim.pw/_next/static/css/c0e142c7abbd44f1.css",
+];
+
+export default async function AccountPage() {
+  const { footer, mobileNav } = await loadCobePhimContent();
+
+  return (
+    <>
+      {cobeStyles.map((href) => (
+        <link key={href} rel="stylesheet" href={href} />
+      ))}
+      <link rel="preload" href="https://cobephim.pw/_next/static/media/e4af272ccee01ff0-s.p.woff2" as="font" crossOrigin="" type="font/woff2" />
+      <style dangerouslySetInnerHTML={{ __html: "body{margin:0!important;min-height:100vh!important;background:#0a0a0e!important}body::before{display:none!important}" }} />
+      <div className="base-load __className_f367f3" suppressHydrationWarning>
+        <CobePhimHeader />
+        <main className="mobile-app-main" style={{ paddingTop: "120px", paddingBottom: "60px", minHeight: "70vh" }}>
+          <AccountPanel />
+        </main>
+        <CobePhimFooter html={footer} />
+        <CobePhimMobileNav html={mobileNav} />
+      </div>
+    </>
+  );
+}

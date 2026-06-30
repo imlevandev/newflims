@@ -299,7 +299,7 @@ export function mapOPhimEpisodesToEpisodeWrites(
         air_date: null,
         created: new Date(),
         duration: 0,
-        embed: "",
+        embed: item.link_embed ?? "",
         filename: item.filename ?? "",
         m3u8: item.link_m3u8 ?? "",
         name,

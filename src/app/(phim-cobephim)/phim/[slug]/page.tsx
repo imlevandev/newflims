@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import type { Metadata } from "next";
+import { MoviePageShell } from "@/features/cobephim/components/movie-page-shell";
 
 import {
   buildHref,
@@ -245,5 +246,9 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
     `${episodesHtml}</div></div></div>`,
   );
 
-  return <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: html.replace(/\r\n/g, "\n") }} />;
+  const score = detail.movie.imdb_rating && detail.movie.imdb_rating !== "0"
+    ? `IMDb ${detail.movie.imdb_rating}`
+    : `${detail.movie.view_total || 0} lượt xem`;
+
+  return <MoviePageShell html={html} movieSlug={slug} primaryHref={primaryHref} score={score} />;
 }

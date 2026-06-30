@@ -1,6 +1,10 @@
-import type { ReactNode } from "react";
+'use client';
+
+import { useEffect, useState, type ReactNode } from "react";
 
 interface MovieUtilityActionsProps {
+  movieId?: string;
+  movieSlug?: string;
   primaryHref: string;
   primaryLabel?: string;
   score?: string;
@@ -14,18 +18,18 @@ function PlayIcon() {
   );
 }
 
-function HeartIcon() {
+function HeartIcon({ filled }: { filled?: boolean }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={filled ? "0" : "2"}>
       <path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
     </svg>
   );
 }
 
-function AddIcon() {
+function BookmarkIcon({ filled }: { filled?: boolean }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={filled ? "0" : "2"}>
+      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
     </svg>
   );
 }
@@ -54,18 +58,83 @@ function StarIcon() {
   );
 }
 
-const utilityItems: { icon: ReactNode; label: string }[] = [
-  { icon: <HeartIcon />, label: "Yeu thich" },
-  { icon: <AddIcon />, label: "Them vao" },
-  { icon: <ShareIcon />, label: "Chia se" },
-  { icon: <ChatIcon />, label: "Binh luan" },
-];
+function getStorageList(key: string): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  } catch { return []; }
+}
+
+function setStorageList(key: string, list: string[]) {
+  localStorage.setItem(key, JSON.stringify(list));
+}
 
 export function MovieUtilityActions({
+  movieId = '',
+  movieSlug = '',
   primaryHref,
   primaryLabel = "Xem ngay",
-  score = "10 danh gia",
+  score = "10 đánh giá",
 }: MovieUtilityActionsProps) {
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Load saved state
+  useEffect(() => {
+    if (!mounted || !movieSlug) return;
+    const favs = getStorageList('cobephim_favorites');
+    const marks = getStorageList('cobephim_bookmarks');
+    setIsFavorite(favs.includes(movieSlug));
+    setIsBookmarked(marks.includes(movieSlug));
+  }, [mounted, movieSlug]);
+
+  function toggleFavorite() {
+    const favs = getStorageList('cobephim_favorites');
+    let next: string[];
+    if (favs.includes(movieSlug)) {
+      next = favs.filter((s) => s !== movieSlug);
+    } else {
+      next = [...favs, movieSlug];
+    }
+    setStorageList('cobephim_favorites', next);
+    setIsFavorite(!isFavorite);
+  }
+
+  function toggleBookmark() {
+    const marks = getStorageList('cobephim_bookmarks');
+    let next: string[];
+    if (marks.includes(movieSlug)) {
+      next = marks.filter((s) => s !== movieSlug);
+    } else {
+      next = [...marks, movieSlug];
+    }
+    setStorageList('cobephim_bookmarks', next);
+    setIsBookmarked(!isBookmarked);
+  }
+
+  async function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) {
+      try { await navigator.share({ url }); } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Đã sao chép link!');
+      } catch {
+        prompt('Copy link:', url);
+      }
+    }
+  }
+
+  function handleComment() {
+    const el = document.querySelector('.movie-detail-comments');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  if (!mounted) return null;
+
   return (
     <div className="movie-utility-actions">
       <a className="movie-utility-actions__play" href={primaryHref}>
@@ -74,12 +143,25 @@ export function MovieUtilityActions({
       </a>
 
       <div className="movie-utility-actions__links">
-        {utilityItems.map((item) => (
-          <button className="movie-utility-actions__item" key={item.label} type="button">
-            <span>{item.icon}</span>
-            <strong>{item.label}</strong>
-          </button>
-        ))}
+        <button className="movie-utility-actions__item" type="button" onClick={toggleFavorite} title={isFavorite ? "Bỏ yêu thích" : "Yêu thích"}>
+          <span style={{ color: isFavorite ? '#e74c3c' : undefined }}><HeartIcon filled={isFavorite} /></span>
+          <strong>{isFavorite ? "Đã thích" : "Yêu thích"}</strong>
+        </button>
+
+        <button className="movie-utility-actions__item" type="button" onClick={toggleBookmark} title={isBookmarked ? "Bỏ theo dõi" : "Thêm vào danh sách"}>
+          <span style={{ color: isBookmarked ? '#f5b532' : undefined }}><BookmarkIcon filled={isBookmarked} /></span>
+          <strong>{isBookmarked ? "Đã lưu" : "Thêm vào"}</strong>
+        </button>
+
+        <button className="movie-utility-actions__item" type="button" onClick={handleShare}>
+          <span><ShareIcon /></span>
+          <strong>Chia sẻ</strong>
+        </button>
+
+        <button className="movie-utility-actions__item" type="button" onClick={handleComment}>
+          <span><ChatIcon /></span>
+          <strong>Bình luận</strong>
+        </button>
       </div>
 
       <div className="movie-utility-actions__score">
