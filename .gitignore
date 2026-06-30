@@ -6,3 +6,5 @@ coverage
 *.tsbuildinfo
 .env.local
 .env
+.env.development
+.env.example
