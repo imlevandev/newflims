@@ -430,8 +430,8 @@ export function VideoPlayer({
   if (!activeServer || !activeEpisode) {
     return (
       <div className="movie-player-empty">
-        <h3>Ngu峄搉 ph谩t 膽ang 膽瓢峄 c岷璸 nh岷璽</h3>
-        <p>Phim n脿y ch瓢a c贸 t岷璸 ph谩t kh岷?d峄g trong d峄?li峄噓 crawl hi峄噉 t岷.</p>
+        <h3>Nguồn phát đang được cập nhật</h3>
+        <p>Phim này chưa có tập phát khả dụng trong dữ liệu crawl hiện tại.</p>
       </div>
     );
   }
@@ -520,7 +520,7 @@ export function VideoPlayer({
 
                   <div className="movie-player__volume">
                     <button
-                      aria-label={isMuted ? "B岷璽 芒m thanh" : "T岷痶 芒m thanh"}
+                      aria-label={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
                       onClick={() => {
                         const video = videoRef.current;
                         const nextMuted = !isMuted;
@@ -567,7 +567,7 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="T岷璸 ti岷縫 theo"
+                    aria-label="Tập tiếp theo"
                     onClick={() => {
                       const nextEpisode = findNextPlayableEpisode(
                         servers,
@@ -610,12 +610,12 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="T峄?膽峄檔g chuy峄僴 t岷璸"
+                    aria-label="Tự động chuyển tập"
                     className={autoNext ? "is-active" : ""}
                     onClick={() => setAutoNext((value) => !value)}
                     type="button"
                   >
-                    <span className="movie-player__auto-badge">T膼</span>
+                    <span className="movie-player__auto-badge">Tập</span>
                   </button>
 
                   <button
@@ -677,7 +677,7 @@ export function VideoPlayer({
           type="button"
         >
           <FavoriteBorderRoundedIcon sx={{ fontSize: 18 }} />
-          <span>Y锚u th铆ch</span>
+          <span>Yêu Thích</span>
         </button>
 
         <button
@@ -686,7 +686,7 @@ export function VideoPlayer({
           type="button"
         >
           <AddRoundedIcon sx={{ fontSize: 18 }} />
-          <span>Th锚m v脿o</span>
+          <span>Thêm vào</span>
         </button>
 
         <button
@@ -695,8 +695,8 @@ export function VideoPlayer({
           type="button"
         >
           <SkipNextRoundedIcon sx={{ fontSize: 18 }} />
-          <span>Chuy峄僴 t岷璸</span>
-          <strong>{autoNext ? "B岷璽" : "T岷痶"}</strong>
+          <span>Chuyển tiếp</span>
+          <strong>{autoNext ? "Bật" : "Tắt"}</strong>
         </button>
 
         <button
