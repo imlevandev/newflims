@@ -615,7 +615,7 @@ export function VideoPlayer({
                     onClick={() => setAutoNext((value) => !value)}
                     type="button"
                   >
-                    <span className="movie-player__auto-badge">Tập</span>
+                    <span className="movie-player__auto-badge">TĐ</span>
                   </button>
 
                   <button
@@ -661,10 +661,10 @@ export function VideoPlayer({
           </>
         ) : (
           <div className="movie-player-empty">
-            <h3>T岷璸 n脿y ch瓢a c贸 ngu峄搉 xem tr峄眂 ti岷縫</h3>
+            <h3>Tập này chưa có nguồn xem trực tiếp</h3>
             <p>
-              T岷璸 n脿y v岷玭 ch瓢a ph谩t s贸ng ho岷穋 ch瓢a c贸 `m3u8`.
-              H茫y ch峄峮 m峄檛 t岷璸 kh谩c 膽茫 ph谩t 峄?b锚n d瓢峄沬.
+              Tập này vẫn chưa phát sóng hoặc chưa có `m3u8`.
+              Hãy chọn một tập khác đã phát ở bên dưới.
             </p>
           </div>
         )}
