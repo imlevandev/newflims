@@ -19,6 +19,10 @@ export const getCachedHomepageApiFeed = unstable_cache(
   { revalidate: 300, tags: ["homepage-feed"] },
 );
 
+export function getCachedHomepageAnimeCollections() {
+  return moviesService.getHomepageAnimeCollections();
+}
+
 export const getCachedHotMovies = unstable_cache(
   () => moviesService.getHotMovies(),
   ["hot-movies"],
@@ -57,7 +61,7 @@ export const getCachedHomepageCollection = unstable_cache(
 
 export async function getMovieDetailOrNotFound(slug: string) {
   try {
-    return await getCachedMovieDetail(slug);
+    return await moviesService.getMovieDetail(slug);
   } catch (error) {
     if (error instanceof AppError && error.code === "MOVIE_NOT_FOUND") {
       notFound();

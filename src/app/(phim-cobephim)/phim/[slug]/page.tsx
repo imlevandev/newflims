@@ -11,7 +11,7 @@ import {
   getCachedHotMovies,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 interface MovieDetailPageProps {
   params: Promise<{ slug: string }>;

@@ -1,7 +1,3 @@
-import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import TvRoundedIcon from "@mui/icons-material/TvRounded";
 import Link from "next/link";
 
 import {
@@ -35,6 +31,38 @@ function getMenuHref(item: HomepageMenuItemDto) {
   return item.data && item.data.trim() ? item.data : "#";
 }
 
+function SearchIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="1em" viewBox="0 0 24 24" width="1em">
+      <path d="m20 20-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg aria-hidden="true" className="ms-1" fill="none" height="18" viewBox="0 0 24 24" width="18">
+      <path d="m6 9 6 6 6-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function TvIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="24" viewBox="0 0 24 24" width="24">
+      <path d="M7 21h10M8 3l4 4 4-4M5 7h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="1em" viewBox="0 0 24 24" width="1em">
+      <path d="M20 21a8 8 0 0 0-16 0m12-13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
 export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
   const [categories, regions] = await Promise.all([
     getCachedCategories(),
@@ -63,7 +91,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
             <div id="search">
               <form action="/tim-kiem" className="search-elements" method="get">
                 <div className="search-icon" style={{ marginTop: "-2px" }}>
-                  <SearchRoundedIcon fontSize="inherit" />
+                  <SearchIcon />
                 </div>
                 <input
                   autoComplete="off"
@@ -95,7 +123,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
                       <div className="menu-item menu-item-sub cobe-menu-dropdown" key={item.key}>
                         <button className="cobe-menu-dropdown__trigger" type="button">
                           {item.label}
-                          <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
+                          <ChevronDownIcon />
                         </button>
 
                         <div className="cobe-mega-menu">
@@ -121,7 +149,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
                     <div className="menu-item menu-item-sub cobe-menu-dropdown">
                       <button className="cobe-menu-dropdown__trigger" type="button">
                         Thể loại
-                        <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
+                        <ChevronDownIcon />
                       </button>
 
                       <div className="cobe-mega-menu cobe-mega-menu--categories">
@@ -152,7 +180,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
                     <div className="menu-item menu-item-sub cobe-menu-dropdown">
                       <button className="cobe-menu-dropdown__trigger" type="button">
                         Quốc gia
-                        <KeyboardArrowDownRoundedIcon className="ms-1" sx={{ fontSize: 18 }} />
+                        <ChevronDownIcon />
                       </button>
 
                       <div className="cobe-mega-menu cobe-mega-menu--regions">
@@ -181,7 +209,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
                 <div className="dropdown">
                   <Link className="app-download-button haha dropdown-toggle" href="/danh-sach">
                     <div className="inc-icon">
-                      <TvRoundedIcon sx={{ fontSize: 24 }} />
+                      <TvIcon />
                     </div>
                     <div className="text text-light">
                       <span>Tải ứng dụng</span>
@@ -194,7 +222,7 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
               <div id="main_user">
                 <Link aria-label="Đăng nhập" className="button-user button-login" href="/login">
                   <div className="line-center">
-                    <PersonRoundedIcon fontSize="inherit" />
+                    <UserIcon />
                     <span>Thành viên</span>
                   </div>
                 </Link>

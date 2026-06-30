@@ -32,6 +32,69 @@ body::before {
   object-position: center top !important;
 }
 
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-main .swiper-wrapper,
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-main .swiper-slide,
+.base-load .cards-row.big-slide .big-slide-wrapper .slide-elements {
+  width: 100% !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .slide-elements .cover-fade {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 34% !important;
+  width: 66% !important;
+  height: 100% !important;
+  max-width: none !important;
+  transform: none !important;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 100%) !important;
+  mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 100%) !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .slide-elements .cover-fade .cover-image {
+  width: 100% !important;
+  height: 100% !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .slide-elements .cover-fade .cover-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-small .swiper-slide {
+  cursor: pointer;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-small {
+  right: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: calc(100% - 80px) !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-small .swiper-wrapper {
+  transform: translate3d(0px, 0px, 0px) !important;
+  justify-content: center !important;
+  gap: 14px !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-small .swiper-slide {
+  width: 64px !important;
+  height: 96px !important;
+  flex: 0 0 64px !important;
+}
+
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-small .v-thumbnail {
+  height: 96px !important;
+  padding-bottom: 0 !important;
+  border-radius: 8px !important;
+}
+
 .base-load header,
 .base-load header input,
 .base-load header button,

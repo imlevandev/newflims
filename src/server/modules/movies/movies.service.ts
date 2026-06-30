@@ -106,11 +106,23 @@ export class MoviesService {
   async getMovieDetail(slug: string): Promise<MovieDetailDto> {
     const detail = await this.moviesDbRepository.getMovieBySlug(slug);
 
-    if (!detail) {
+    if (detail) {
+      return detail;
+    }
+
+    const homepageMovie = await this.externalMoviesRepository.findHomepageMovieBySlug(slug, {
+      cache: "no-store",
+      revalidate: false,
+    });
+
+    if (!homepageMovie) {
       throw new AppError("Movie not found", 404, "MOVIE_NOT_FOUND");
     }
 
-    return detail;
+    return {
+      movie: this.toHomepageMovie(homepageMovie),
+      episodes: [],
+    };
   }
 
   async getMovieList(query: MovieListQueryDto): Promise<MovieListResponseDto> {
@@ -177,6 +189,25 @@ export class MoviesService {
       banners,
       comments,
     };
+  }
+
+  async getHomepageAnimeCollections() {
+    const collections = await this.externalMoviesRepository.getHomepageCollections(3, 3, {
+      cache: "no-store",
+      revalidate: false,
+    });
+    const animeCollections = collections.filter((collection) => {
+      const normalized = `${collection.slug} ${collection.name}`.toLowerCase();
+      return normalized.includes("anime") || normalized.includes("hoat-hinh");
+    });
+
+    return animeCollections.map((collection) => ({
+      ...collection,
+      name: collection.name || "Kho Tàng Anime Mới Nhất",
+      movies: collection.movies
+        .slice(0, 15)
+        .map((movie) => this.toHomepageMovie(movie)),
+    }));
   }
 
   async getRegions(): Promise<RegionDto[]> {

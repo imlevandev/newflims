@@ -1,5 +1,3 @@
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
-import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import Link from "next/link";
 
 import { MovieCatalogLayout } from "@/features/movie-catalog/components/movie-catalog-layout";
@@ -7,17 +5,34 @@ import { MovieEpisodeBoard } from "@/features/movie-catalog/components/movie-epi
 import { VideoPlayer } from "@/features/movie-catalog/components/video-player";
 import { WatchMovieOverview } from "@/features/movie-catalog/components/watch-movie-overview";
 import { WatchMovieSidePanel } from "@/features/movie-catalog/components/watch-movie-side-panel";
+import { WatchEpisodeLinkController } from "@/features/movie-catalog/components/watch-episode-link-controller";
 import { getSingleSearchValue } from "@/features/movie-catalog/lib/movie-catalog-format";
 import {
   getMovieDetailOrNotFound,
   getCachedHotMovies,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 interface WatchMoviePageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function ArrowBackIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20">
+      <path d="M19 12H5m7-7-7 7 7 7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="24" viewBox="0 0 24 24" width="24">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9H13a8.48 8.48 0 0 1 8 8v.5Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
 }
 
 export default async function WatchMoviePage({
@@ -45,7 +60,7 @@ export default async function WatchMoviePage({
       <section className="movie-watch-page">
         <div className="movie-watch-page__topbar">
           <Link className="movie-watch-page__back" href={`/phim/${detail.movie.slug}`}>
-            <ArrowBackRoundedIcon sx={{ fontSize: 20 }} />
+            <ArrowBackIcon />
           </Link>
 
           <div className="movie-watch-page__heading">
@@ -64,6 +79,7 @@ export default async function WatchMoviePage({
         </div>
 
         <div className="movie-watch-layout">
+          <WatchEpisodeLinkController />
           <div className="movie-watch-layout__main">
             <WatchMovieOverview movie={detail.movie} />
 
@@ -76,7 +92,7 @@ export default async function WatchMoviePage({
 
             <section className="movie-detail-comments">
               <div className="movie-detail-comments__title">
-                <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 24 }} />
+                <CommentIcon />
                 <h2>Bình luận (0)</h2>
               </div>
               <p>Vui lòng đăng nhập để tham gia bình luận.</p>

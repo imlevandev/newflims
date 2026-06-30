@@ -47,6 +47,11 @@ interface PlaybackSelection {
   server: MovieEpisodeServerDto | null;
 }
 
+interface WatchEpisodeChangeDetail {
+  episodeSlug: string;
+  serverSlug: string;
+}
+
 function findServerBySlug(servers: MovieEpisodeServerDto[], serverSlug?: string) {
   if (!serverSlug) {
     return null;
@@ -92,25 +97,11 @@ function resolvePlaybackSelection(
   }
 
   if (preferredEpisode && !isEpisodePlayable(preferredEpisode)) {
-    const serverFallback = getFirstPlayableEpisodeFromServer(preferredServer);
-
-    if (serverFallback && preferredServer) {
+    if (preferredServer) {
       return {
-        episode: serverFallback,
-        notice:
-          "Tập bạn chọn chưa có nguồn phát. Hệ thống đã chuyển sang tập gần nhất có thể xem.",
+        episode: preferredEpisode,
+        notice: "Tập này chưa có nguồn phát. Bạn có thể chọn tập khác ở danh sách bên dưới.",
         server: preferredServer,
-      };
-    }
-
-    const globalFallback = findGlobalPlayableSelection(servers);
-
-    if (globalFallback) {
-      return {
-        episode: globalFallback.episode,
-        notice:
-          "Tập bạn chọn chưa có nguồn phát. Hệ thống đã chuyển sang tập khác đang xem được.",
-        server: globalFallback.server,
       };
     }
   }
@@ -255,7 +246,11 @@ export function VideoPlayer({
       (item) => item.slug === activeEpisodeSlug,
     );
 
-    if (selectedEpisode && isEpisodePlayable(selectedEpisode)) {
+    if (selectedEpisode) {
+      if (!isEpisodePlayable(selectedEpisode)) {
+        setPlayerNotice("Tập này chưa có nguồn phát. Bạn có thể chọn tập khác ở danh sách bên dưới.");
+      }
+
       return;
     }
 
@@ -263,12 +258,6 @@ export function VideoPlayer({
 
     if (fallbackEpisode) {
       setActiveEpisodeSlug(fallbackEpisode.slug);
-
-      if (selectedEpisode && !isEpisodePlayable(selectedEpisode)) {
-        setPlayerNotice(
-          "Tập bạn chọn chưa có nguồn phát. Hệ thống đã chuyển sang tập khác đang xem được.",
-        );
-      }
 
       return;
     }
@@ -279,13 +268,34 @@ export function VideoPlayer({
       setActiveServerId(globalFallback.server.id);
       setActiveEpisodeSlug(globalFallback.episode.slug);
 
-      if (selectedEpisode && !isEpisodePlayable(selectedEpisode)) {
-        setPlayerNotice(
-          "Tập bạn chọn chưa có nguồn phát. Hệ thống đã chuyển sang tập khác đang xem được.",
-        );
-      }
     }
   }, [activeEpisodeSlug, activeServer, servers]);
+
+  useEffect(() => {
+    const handleEpisodeChange = (event: Event) => {
+      const detail = (event as CustomEvent<WatchEpisodeChangeDetail>).detail;
+      const nextServer = servers.find((server) => server.server_slug === detail.serverSlug);
+      const nextEpisode = nextServer?.items.find((item) => item.slug === detail.episodeSlug);
+
+      if (!nextServer || !nextEpisode) {
+        return;
+      }
+
+      setActiveServerId(nextServer.id);
+      setActiveEpisodeSlug(nextEpisode.slug);
+      setPlayerNotice(
+        isEpisodePlayable(nextEpisode)
+          ? ""
+          : "Tập này chưa có nguồn phát. Bạn có thể chọn tập khác ở danh sách bên dưới.",
+      );
+    };
+
+    window.addEventListener("watch-episode-change", handleEpisodeChange);
+
+    return () => {
+      window.removeEventListener("watch-episode-change", handleEpisodeChange);
+    };
+  }, [servers]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -293,9 +303,6 @@ export function VideoPlayer({
     if (!video || !activeEpisode?.m3u8) {
       return;
     }
-
-    video.volume = volume;
-    video.muted = isMuted;
 
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = activeEpisode.m3u8;
@@ -317,7 +324,18 @@ export function VideoPlayer({
     return () => {
       hls.destroy();
     };
-  }, [activeEpisode?.m3u8, isMuted, volume]);
+  }, [activeEpisode?.m3u8]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    video.volume = volume;
+    video.muted = isMuted || volume === 0;
+  }, [isMuted, volume]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -386,6 +404,21 @@ export function VideoPlayer({
     await navigator.clipboard.writeText(shareUrl);
   };
 
+  const updateVolume = (nextVolume: number) => {
+    const normalizedVolume = Math.min(1, Math.max(0, nextVolume));
+    const video = videoRef.current;
+
+    setVolume(normalizedVolume);
+    setIsMuted(normalizedVolume === 0);
+
+    if (!video) {
+      return;
+    }
+
+    video.volume = normalizedVolume;
+    video.muted = normalizedVolume === 0;
+  };
+
   const progressValue = useMemo(() => {
     if (!duration) {
       return 0;
@@ -397,8 +430,8 @@ export function VideoPlayer({
   if (!activeServer || !activeEpisode) {
     return (
       <div className="movie-player-empty">
-        <h3>Nguồn phát đang được cập nhật</h3>
-        <p>Phim này chưa có tập phát khả dụng trong dữ liệu crawl hiện tại.</p>
+        <h3>Ngu峄搉 ph谩t 膽ang 膽瓢峄 c岷璸 nh岷璽</h3>
+        <p>Phim n脿y ch瓢a c贸 t岷璸 ph谩t kh岷?d峄g trong d峄?li峄噓 crawl hi峄噉 t岷.</p>
       </div>
     );
   }
@@ -426,7 +459,7 @@ export function VideoPlayer({
               <div className="movie-player__controls-row">
                 <div className="movie-player__controls-group">
                   <button
-                    aria-label={isPlaying ? "Tạm dừng" : "Phát"}
+                    aria-label={isPlaying ? "T岷 d峄玭g" : "Ph谩t"}
                     onClick={() => {
                       const video = videoRef.current;
 
@@ -451,7 +484,7 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="Lùi 10 giây"
+                    aria-label="L霉i 10 gi芒y"
                     onClick={() => {
                       const video = videoRef.current;
 
@@ -467,7 +500,7 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="Tới 10 giây"
+                    aria-label="T峄沬 10 gi芒y"
                     onClick={() => {
                       const video = videoRef.current;
 
@@ -487,15 +520,16 @@ export function VideoPlayer({
 
                   <div className="movie-player__volume">
                     <button
-                      aria-label={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+                      aria-label={isMuted ? "B岷璽 芒m thanh" : "T岷痶 芒m thanh"}
                       onClick={() => {
                         const video = videoRef.current;
+                        const nextMuted = !isMuted;
 
-                        if (!video) {
-                          return;
+                        setIsMuted(nextMuted);
+
+                        if (video) {
+                          video.muted = nextMuted;
                         }
-
-                        video.muted = !video.muted;
                       }}
                       type="button"
                     >
@@ -507,21 +541,14 @@ export function VideoPlayer({
                     </button>
 
                     <input
-                      aria-label="Âm lượng"
+                      aria-label="脗m l瓢峄g"
                       max="1"
                       min="0"
                       onChange={(event) => {
-                        const nextVolume = Number(event.target.value);
-                        const video = videoRef.current;
-
-                        setVolume(nextVolume);
-
-                        if (!video) {
-                          return;
-                        }
-
-                        video.volume = nextVolume;
-                        video.muted = nextVolume === 0;
+                        updateVolume(Number(event.target.value));
+                      }}
+                      onInput={(event) => {
+                        updateVolume(Number(event.currentTarget.value));
                       }}
                       step="0.01"
                       type="range"
@@ -540,7 +567,7 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="Tập tiếp theo"
+                    aria-label="T岷璸 ti岷縫 theo"
                     onClick={() => {
                       const nextEpisode = findNextPlayableEpisode(
                         servers,
@@ -562,7 +589,7 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="Chế độ hình trong hình"
+                    aria-label="Ch岷?膽峄?h矛nh trong h矛nh"
                     onClick={async () => {
                       const video = videoRef.current;
 
@@ -583,16 +610,16 @@ export function VideoPlayer({
                   </button>
 
                   <button
-                    aria-label="Tự động chuyển tập"
+                    aria-label="T峄?膽峄檔g chuy峄僴 t岷璸"
                     className={autoNext ? "is-active" : ""}
                     onClick={() => setAutoNext((value) => !value)}
                     type="button"
                   >
-                    <span className="movie-player__auto-badge">TĐ</span>
+                    <span className="movie-player__auto-badge">T膼</span>
                   </button>
 
                   <button
-                    aria-label="Toàn màn hình"
+                    aria-label="To脿n m脿n h矛nh"
                     onClick={() => {
                       const video = videoRef.current;
                       void video?.requestFullscreen?.();
@@ -606,7 +633,7 @@ export function VideoPlayer({
 
               <div className="movie-player__progress">
                 <input
-                  aria-label="Tiến độ video"
+                  aria-label="Ti岷縩 膽峄?video"
                   max={duration || 0}
                   min="0"
                   onChange={(event) => {
@@ -634,10 +661,10 @@ export function VideoPlayer({
           </>
         ) : (
           <div className="movie-player-empty">
-            <h3>Tập này chưa có nguồn xem trực tiếp</h3>
+            <h3>T岷璸 n脿y ch瓢a c贸 ngu峄搉 xem tr峄眂 ti岷縫</h3>
             <p>
-              Tập này vẫn chưa phát sóng hoặc chưa có `m3u8`.
-              Hãy chọn một tập khác đã phát ở bên dưới.
+              T岷璸 n脿y v岷玭 ch瓢a ph谩t s贸ng ho岷穋 ch瓢a c贸 `m3u8`.
+              H茫y ch峄峮 m峄檛 t岷璸 kh谩c 膽茫 ph谩t 峄?b锚n d瓢峄沬.
             </p>
           </div>
         )}
@@ -650,7 +677,7 @@ export function VideoPlayer({
           type="button"
         >
           <FavoriteBorderRoundedIcon sx={{ fontSize: 18 }} />
-          <span>Yêu thích</span>
+          <span>Y锚u th铆ch</span>
         </button>
 
         <button
@@ -659,7 +686,7 @@ export function VideoPlayer({
           type="button"
         >
           <AddRoundedIcon sx={{ fontSize: 18 }} />
-          <span>Thêm vào</span>
+          <span>Th锚m v脿o</span>
         </button>
 
         <button
@@ -668,8 +695,8 @@ export function VideoPlayer({
           type="button"
         >
           <SkipNextRoundedIcon sx={{ fontSize: 18 }} />
-          <span>Chuyển tập</span>
-          <strong>{autoNext ? "Bật" : "Tắt"}</strong>
+          <span>Chuy峄僴 t岷璸</span>
+          <strong>{autoNext ? "B岷璽" : "T岷痶"}</strong>
         </button>
 
         <button

@@ -1,6 +1,5 @@
 import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
 import StorageRoundedIcon from "@mui/icons-material/StorageRounded";
 import Link from "next/link";
 
@@ -28,12 +27,7 @@ export function MovieEpisodeBoard({
     movieDetail.episodes.find((server) => server.server_slug === currentServerSlug) ||
     firstServer;
 
-  const totalEpisodes = movieDetail.episodes.reduce(
-    (total, server) => total + server.items.length,
-    0,
-  );
   const playableEpisodes = getPlayableEpisodeCount(movieDetail.episodes);
-  const scheduledEpisodes = Math.max(totalEpisodes - playableEpisodes, 0);
 
   return (
     <section className="movie-episode-board">
@@ -57,17 +51,6 @@ export function MovieEpisodeBoard({
             : `Hiện có ${playableEpisodes} tập xem được trong dữ liệu hiện tại. Bạn vẫn có thể mở ngay các tập đã phát.`}
         </p>
       </div>
-
-      {movieDetail.movie.showtime ? (
-        <div className="movie-episode-board__schedule-note">
-          <ScheduleRoundedIcon sx={{ fontSize: 18 }} />
-          <span>
-            {scheduledEpisodes > 0
-              ? `Tập chưa chiếu sẽ lên lịch vào: ${movieDetail.movie.showtime}`
-              : `Lịch chiếu tiếp theo: ${movieDetail.movie.showtime}`}
-          </span>
-        </div>
-      ) : null}
 
       {activeServer ? (
         <div className="movie-episode-board__server-row">
@@ -108,13 +91,13 @@ export function MovieEpisodeBoard({
                   .filter(Boolean)
                   .join(" ")}
                 href={`/xem-phim/${movieDetail.movie.slug}?server=${activeServer.server_slug}&episode=${item.slug}`}
+                data-episode-slug={watchMode ? item.slug : undefined}
+                data-server-slug={watchMode ? activeServer.server_slug : undefined}
+                data-watch-episode-link={watchMode ? "true" : undefined}
                 key={`${activeServer.id}-${item.slug}`}
               >
                 <PlayArrowRoundedIcon sx={{ fontSize: 18 }} />
                 <span>{item.name || `Tập ${index + 1}`}</span>
-                {!isPlayable && movieDetail.movie.showtime ? (
-                  <small>{movieDetail.movie.showtime}</small>
-                ) : null}
               </Link>
             );
           })}
@@ -128,3 +111,4 @@ export function MovieEpisodeBoard({
     </section>
   );
 }
+

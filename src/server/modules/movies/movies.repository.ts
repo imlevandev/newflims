@@ -96,8 +96,13 @@ export class MoviesRepository {
     limit = 3,
     options?: RemoteFetchOptions,
   ) {
+    const searchParams = new URLSearchParams({
+      limit: String(limit),
+      page: String(page),
+    });
+
     const payload = await this.fetchJson<HomepageListsResponse>(
-      `/lists/homepageLists?page=${page}&limit=${limit}`,
+      `/lists/homepageLists?${searchParams.toString()}`,
       options,
     );
 
@@ -122,6 +127,16 @@ export class MoviesRepository {
       ...firstPage.collections,
       ...restPages.flatMap((page) => page.collections),
     ];
+  }
+
+  async findHomepageMovieBySlug(slug: string, options?: RemoteFetchOptions) {
+    const collections = await this.getAllHomepageCollections(3, options);
+
+    return (
+      collections
+        .flatMap((collection) => collection.movies)
+        .find((movie) => movie.slug === slug) || null
+    );
   }
 
   async getHomepageTopics(options?: RemoteFetchOptions) {

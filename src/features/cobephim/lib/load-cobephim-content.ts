@@ -47,6 +47,21 @@ function normalizeMainHtml(html: string) {
     );
 }
 
+function normalizeMobileNavHtml(html: string) {
+  return html
+    .replace('href="#"', 'href="/tim-kiem"')
+    .replace('href="#"', 'href="/danh-sach"')
+    .replace('href="#"', 'href="/lich-chieu"')
+    .replace('href="#"', 'href="/login"');
+}
+
+function normalizeFooterHtml(html: string) {
+  return html.replace(
+    /<a class="social-item" target="_blank" href="https:\/\/discord\.gg\/daoroxanh" title="Discord">[\s\S]*?<\/a>/,
+    "",
+  );
+}
+
 const readFragment = (filename: string) => {
   const filePath = path.join(
     process.cwd(),
@@ -65,6 +80,14 @@ const readFragment = (filename: string) => {
 
   if (filename === "main.html") {
     return normalizeMainHtml(html);
+  }
+
+  if (filename === "mobile-nav.html") {
+    return normalizeMobileNavHtml(html);
+  }
+
+  if (filename === "footer.html") {
+    return normalizeFooterHtml(html);
   }
 
   return html;

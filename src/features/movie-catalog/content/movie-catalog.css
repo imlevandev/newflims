@@ -24,10 +24,15 @@
   text-decoration: none;
 }
 
+.movie-catalog .sspp-area,
+.phim-shell .sspp-area {
+  display: none !important;
+}
+
 .movie-catalog-main {
   width: min(1720px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 28px 0 72px;
+  padding: 118px 0 72px;
 }
 
 .movie-catalog-header {
@@ -791,10 +796,12 @@
   right: 0;
   bottom: 0;
   left: 0;
+  z-index: 3;
   display: grid;
   gap: 10px;
   padding: 18px 18px 14px;
   background: linear-gradient(180deg, transparent, rgba(8, 10, 15, 0.24) 18%, rgba(8, 10, 15, 0.9) 100%);
+  pointer-events: auto;
 }
 
 .movie-player__controls-row,
@@ -811,10 +818,13 @@
 
 .movie-player__controls-group {
   gap: 12px;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .movie-player__controls-group--right {
+  flex: 0 0 auto;
   justify-content: flex-end;
 }
 
@@ -842,14 +852,28 @@
 }
 
 .movie-player__volume {
+  position: relative;
+  z-index: 4;
   gap: 10px;
-  min-width: 150px;
+  flex: 0 0 178px;
+  min-width: 178px;
+}
+
+.movie-player__volume input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: pan-x;
 }
 
 .movie-player__time {
+  flex: 0 0 auto;
   color: rgba(245, 247, 251, 0.9);
   font-size: 0.95rem;
   font-weight: 500;
+  min-width: 112px;
+  white-space: nowrap;
 }
 
 .movie-player__controls input[type="range"],
@@ -1577,6 +1601,10 @@
     width: min(100% - 20px, 1720px);
   }
 
+  .movie-catalog-main {
+    padding-top: 96px;
+  }
+
   .movie-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1609,6 +1637,10 @@
     grid-template-columns: 1fr;
     gap: 14px;
     padding: 14px 0;
+  }
+
+  .movie-catalog-main {
+    padding-top: 78px;
   }
 
   .movie-detail-hero-banner {
@@ -1653,6 +1685,19 @@
 
   .movie-player__controls-group--right {
     justify-content: flex-start;
+  }
+
+  .movie-player__controls-group {
+    flex-wrap: wrap;
+  }
+
+  .movie-player__volume {
+    flex: 1 1 180px;
+    min-width: 160px;
+  }
+
+  .movie-player__time {
+    min-width: auto;
   }
 
   .movie-player__controls,
