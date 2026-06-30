@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Script from "next/script";
 
 import { CobePhimFooter } from "@/features/cobephim/components/cobephim-footer";
 import { CobePhimHeader } from "@/features/cobephim/components/cobephim-header";
@@ -53,6 +54,24 @@ export default function CobephimLayout({ children }: { children: ReactNode }) {
         <CobePhimFooter html={footer} />
         <CobePhimMobileNav html={mobileNav} />
       </div>
+      <Script id="tab-switcher" strategy="afterInteractive">
+        {`(function(){
+          document.addEventListener('click',function(e){
+            var btn=e.target.closest('.nav-link,.nav-item button,[role="tab"]');
+            if(!btn)return;
+            var parent=btn.closest('.v-tabs,.nav-tabs,.nav-pills');
+            if(!parent)return;
+            var container=parent.nextElementSibling||parent.parentElement.querySelector('.tab-content');
+            if(!container){container=document.querySelector('.tab-content');}
+            if(!container)return;
+            parent.querySelectorAll('.nav-link.active,.nav-link[aria-selected="true"],button[aria-selected="true"]').forEach(function(b){b.classList.remove('active');b.setAttribute('aria-selected','false');});
+            btn.classList.add('active');btn.setAttribute('aria-selected','true');
+            container.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active','show');});
+            var pane=container.querySelector('[aria-labelledby="'+btn.id+'"]');
+            if(pane){pane.classList.add('active','show');}
+          });
+        })()`}
+      </Script>
     </>
   );
 }

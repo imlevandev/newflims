@@ -1,11 +1,10 @@
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import type { CSSProperties } from "react";
+import type { CSSProperties } from 'react';
 
-import { getMovieCover } from "@/features/movies-home/lib/movie-format";
+import { getMovieCover } from '@/features/movies-home/lib/movie-format';
 import type {
   HomepageMovieCollectionDto,
   RemoteMovieDto,
-} from "@/server/modules/movies/dto/movie.dto";
+} from '@/server/modules/movies/dto/movie.dto';
 
 interface CloneHomeCollectionRowProps {
   collection: HomepageMovieCollectionDto;
@@ -23,6 +22,10 @@ function getEpisodeBadge(movie: RemoteMovieDto) {
 export function CloneHomeCollectionRow({
   collection,
 }: CloneHomeCollectionRowProps) {
+  const displayMovies = collection.movies.slice(0, 12);
+
+  if (displayMovies.length === 0) return null;
+
   return (
     <div className="cards-row cards-slide wide effect-fade-in">
       <div className="topics-list single mt-0">
@@ -32,12 +35,14 @@ export function CloneHomeCollectionRow({
               <div className="heading-md text-gradient mb-0">{collection.name}</div>
               <div className="info">
                 <a
-                  aria-label={`Xem toàn bộ ${collection.name}`}
+                  aria-label={`Xem toan bo ${collection.name}`}
                   className="line-center"
                   href={`/c/${collection.slug}`}
                 >
-                  <span>Xem toàn bộ</span>
-                  <ChevronRightRoundedIcon sx={{ fontSize: 18 }} />
+                  <span>Xem toan bo</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9.29 6.71a.996.996 0 0 0 0 1.41L13.17 12l-3.88 3.88a.996.996 0 1 0 1.41 1.41l4.59-4.59a.996.996 0 0 0 0-1.41L10.7 6.7c-.38-.38-1.02-.38-1.41.01z" />
+                  </svg>
                 </a>
               </div>
             </div>
@@ -45,21 +50,23 @@ export function CloneHomeCollectionRow({
               <div className="cards-slide-wrapper relative">
                 <div className="swiper swiper-initialized swiper-horizontal">
                   <div className="swiper-wrapper">
-                    {collection.movies.slice(0, 8).map((movie, index) => {
+                    {displayMovies.map((movie, index) => {
                       const slideStyle: CSSProperties = {
-                        marginRight: "16px",
-                        width: "368px",
+                        marginRight: '16px',
+                        width: '368px',
                       };
 
                       return (
                         <div
                           className={[
-                            "swiper-slide",
-                            index === 0 ? "swiper-slide-active" : "",
-                            index === 1 ? "swiper-slide-next" : "",
+                            'swiper-slide',
+                            'swiper-slide-visible',
+                            'swiper-slide-fully-visible',
+                            index === 0 ? 'swiper-slide-active' : '',
+                            index === 1 ? 'swiper-slide-next' : '',
                           ]
                             .filter(Boolean)
-                            .join(" ")}
+                            .join(' ')}
                           key={movie.id}
                           style={slideStyle}
                         >

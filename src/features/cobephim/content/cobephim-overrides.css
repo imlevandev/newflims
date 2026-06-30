@@ -102,6 +102,34 @@ body::before {
   object-fit: cover !important;
 }
 
+
+/* Fix static swiper cards IN collection rows — clickable, no layout changes */
+.cards-slide .swiper-wrapper {
+  overflow: visible !important;
+}
+
+.cards-slide .swiper-slide {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
+.cards-slide .swiper-slide a {
+  pointer-events: auto !important;
+}
+
+.cards-slide .cards-slide-wrapper {
+  overflow-x: auto !important;
+}
+
+.cards-slide .row-content {
+  overflow: visible !important;
+}
+
+/* Fix hero thumbnails clickable */
+.top-slide-small .swiper-slide {
+  pointer-events: auto !important;
+}
+
 .base-load header,
 .base-load header input,
 .base-load header button,

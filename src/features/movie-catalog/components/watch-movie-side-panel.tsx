@@ -1,4 +1,3 @@
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import Link from "next/link";
 
 import type { RemoteMovieDto } from "@/server/modules/movies/dto/movie.dto";
@@ -32,6 +31,14 @@ function getInitials(name: string) {
     .join("");
 }
 
+function PlayArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z" />
+    </svg>
+  );
+}
+
 export function WatchMovieSidePanel({
   movie,
   recommendations,
@@ -41,7 +48,7 @@ export function WatchMovieSidePanel({
   return (
     <aside className="watch-side-panel">
       <section className="watch-side-panel__section">
-        <h3>Diễn viên</h3>
+        <h3>Dien vien</h3>
 
         {actors.length > 0 ? (
           <div className="watch-cast-grid">
@@ -58,12 +65,12 @@ export function WatchMovieSidePanel({
             ))}
           </div>
         ) : (
-          <p className="watch-side-panel__empty">Chưa có dữ liệu diễn viên cho phim này.</p>
+          <p className="watch-side-panel__empty">Chua co du lieu dien vien cho phim nay.</p>
         )}
       </section>
 
       <section className="watch-side-panel__section">
-        <h3>Đề xuất cho bạn</h3>
+        <h3>De xuat cho ban</h3>
 
         <div className="watch-recommendations">
           {recommendations.map((item) => (
@@ -73,11 +80,11 @@ export function WatchMovieSidePanel({
               <div className="watch-recommend-card__content">
                 <strong>{item.name}</strong>
                 <span>{item.origin_name || item.name}</span>
-                <small>{getMovieMetaBadges(item).slice(0, 3).join(" • ")}</small>
+                <small>{getMovieMetaBadges(item).slice(0, 3).join(" \u2022 ")}</small>
               </div>
 
               <span className="watch-recommend-card__arrow">
-                <PlayArrowRoundedIcon sx={{ fontSize: 18 }} />
+                <PlayArrowIcon />
               </span>
             </Link>
           ))}

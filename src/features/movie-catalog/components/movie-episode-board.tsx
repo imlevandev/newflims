@@ -1,6 +1,3 @@
-import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import StorageRoundedIcon from "@mui/icons-material/StorageRounded";
 import Link from "next/link";
 
 import type { MovieDetailDto } from "@/server/modules/movies/dto/movie.dto";
@@ -14,7 +11,31 @@ interface MovieEpisodeBoardProps {
   watchMode?: boolean;
 }
 
-const tabs = ["Tập phim", "Bộ sưu tập", "Diễn viên", "Đề xuất"];
+const tabs = ["Tap phim", "Bo suu tap", "Dien vien", "De xuat"];
+
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+    </svg>
+  );
+}
+
+function StorageIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z" />
+    </svg>
+  );
+}
 
 export function MovieEpisodeBoard({
   currentEpisodeSlug,
@@ -43,19 +64,19 @@ export function MovieEpisodeBoard({
 
       <div className="movie-episode-board__notice">
         <span className="movie-episode-board__notice-bell">
-          <NotificationsActiveRoundedIcon sx={{ fontSize: 20 }} />
+          <BellIcon />
         </span>
         <p>
           {watchMode
-            ? "Bạn vẫn có thể đổi server hoặc chuyển sang các tập đã có nguồn phát ở bên dưới."
-            : `Hiện có ${playableEpisodes} tập xem được trong dữ liệu hiện tại. Bạn vẫn có thể mở ngay các tập đã phát.`}
+            ? "Ban van co the doi server hoac chuyen sang cac tap da co nguon phat o ben duoi."
+            : `Hien co ${playableEpisodes} tap xem duoc trong du lieu hien tai. Ban van co the mo ngay cac tap da phat.`}
         </p>
       </div>
 
       {activeServer ? (
         <div className="movie-episode-board__server-row">
           <div className="movie-episode-board__server-title">
-            <StorageRoundedIcon sx={{ fontSize: 20 }} />
+            <StorageIcon />
             <strong>{activeServer.server_name}</strong>
           </div>
 
@@ -98,19 +119,18 @@ export function MovieEpisodeBoard({
                 data-watch-episode-link={watchMode ? "true" : undefined}
                 key={`${activeServer.id}-${item.slug}`}
               >
-                <PlayArrowRoundedIcon sx={{ fontSize: 18 }} />
-                <span>{item.name || `Tập ${index + 1}`}</span>
+                <PlayIcon />
+                <span>{item.name || `Tap ${index + 1}`}</span>
               </Link>
             );
           })}
         </div>
       ) : (
         <div className="movie-player-empty">
-          <h3>Chưa có tập phim khả dụng</h3>
-          <p>Dữ liệu crawl hiện tại chưa có server hoặc danh sách tập cho phim này.</p>
+          <h3>Chua co tap phim kha dung</h3>
+          <p>Du lieu crawl hien tai chua co server hoac danh sach tap cho phim nay.</p>
         </div>
       )}
     </section>
   );
 }
-

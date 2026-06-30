@@ -8,6 +8,7 @@ import {
 } from "@/features/movie-catalog/lib/movie-catalog-format";
 import {
   getMovieDetailOrNotFound,
+  getCachedHotMovies,
 } from "@/features/movie-catalog/lib/movie-catalog-data";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export async function generateMetadata({ params }: MovieDetailPageProps): Promis
   const { slug } = await params;
   try {
     const detail = await getMovieDetailOrNotFound(slug);
+  const hotMovies = await getCachedHotMovies();
     return {
       title: `${detail.movie.name} (${detail.movie.origin_name}) - CôBe Phim`,
       description: detail.movie.description?.replace(/<[^>]*>/g, "").substring(0, 160) || "",
@@ -42,6 +44,7 @@ function safeReplace(html: string, search: RegExp, replacement: string): string 
 export default async function MovieDetailPage({ params }: MovieDetailPageProps) {
   const { slug } = await params;
   const detail = await getMovieDetailOrNotFound(slug);
+  const hotMovies = await getCachedHotMovies();
 
   const firstPlayable = getFirstPlayableEpisode(detail);
   const primaryHref = firstPlayable
@@ -54,13 +57,15 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
   // Read full template
   const fullHtml = fs.readFileSync(path.join(process.cwd(), "public/movie-body.html"), "utf-8");
 
+  // Rewrite cobephim asset paths
+  let html = fullHtml.replace(/\/images\//g, '/cobephim-v6/images/');
+
   // Strip desktop header (wrapped in d-none d-md-block) and footer
   const hdrBlockStart = fullHtml.indexOf('<header class="fly">');
   const hdrWrapperStart = fullHtml.lastIndexOf('<div class="d-none d-md-block">', hdrBlockStart);
   const hdrWrapperEnd = fullHtml.indexOf('</div>', fullHtml.indexOf('</header>', hdrBlockStart));
   const ftrStart = fullHtml.indexOf('<footer');
 
-  let html = fullHtml;
   if (hdrWrapperStart >= 0 && hdrWrapperEnd >= 0) {
     html = fullHtml.substring(0, hdrWrapperStart) + fullHtml.substring(hdrWrapperEnd + '</div>'.length);
   }
@@ -156,6 +161,37 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
     statusBlock,
   );
 
+  // Populate empty tab panes: gallery, casts, suggestion
+  // --- Actors (casts) ---
+  const actorsList = (detail.movie.actor ?? []).filter(Boolean);
+  const castsHtml = actorsList.length > 0
+    ? `<div class="cast-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px;padding:8px 0;">${actorsList.map((a) => `<div class="cast-card" style="background:rgba(255,255,255,0.06);border-radius:14px;padding:16px;text-align:center;"><div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f5b532,#e8a317);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#111;">${a.split(/\s+/).filter(Boolean).slice(0,2).map((p) => p[0]?.toUpperCase() ?? "").join("")}</div><span style="color:#f4f6fb;font-size:0.85rem;font-weight:600;">${a.replace(/\$/g, "$$$$")}</span></div>`).join("")}</div>`
+    : '<div style="text-align:center;padding:40px 16px;color:rgba(255,255,255,0.4);"><p>Chưa có dữ liệu diễn viên.</p></div>';
+  html = html.replace(
+    /<div role="tabpanel"[^>]*tabpane-casts[^"]*"[^>]*class="fade tab-pane"><\/div>/,
+    `<div role="tabpanel" aria-labelledby="react-aria-tab-casts" class="fade tab-pane">${castsHtml}</div>`,
+  );
+
+  // --- Gallery ---
+  const galleryImages = [detail.movie.poster, detail.movie.thumbnail, detail.movie.banner].filter((u): u is string => Boolean(u));
+  const galleryHtml = galleryImages.length > 0
+    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:8px 0;">${galleryImages.map((src) => `<div style="border-radius:14px;overflow:hidden;aspect-ratio:16/9;background:rgba(255,255,255,0.04);"><img src="${src.replace(/\$/g, "$$$$")}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;" /></div>`).join("")}</div>`
+    : '<div style="text-align:center;padding:40px 16px;color:rgba(255,255,255,0.4);"><p>Chưa có ảnh.</p></div>';
+  html = html.replace(
+    /<div role="tabpanel"[^>]*tabpane-gallery[^"]*"[^>]*class="fade tab-pane"><\/div>/,
+    `<div role="tabpanel" aria-labelledby="react-aria-tab-gallery" class="fade tab-pane">${galleryHtml}</div>`,
+  );
+
+  // --- Suggestions (recommendations) ---
+  const recs = hotMovies.filter((m) => m.slug !== detail.movie.slug).slice(0, 6);
+  const recsHtml = recs.length > 0
+    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:8px 0;">${recs.map((m) => {const p = (m.poster || m.thumbnail || "").replace(/\$/g, "$$$$");const n = m.name.replace(/\$/g, "$$$$");return `<a href="/phim/${m.slug}" style="text-decoration:none;color:inherit;"><div style="background:rgba(255,255,255,0.04);border-radius:14px;overflow:hidden;"><div style="aspect-ratio:3/4;overflow:hidden;"><img src="${p}" alt="${n}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div><div style="padding:10px 12px;"><strong style="color:#f4f6fb;font-size:0.85rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${n}</strong></div></div></a>`;}).join("")}</div>`
+    : '<div style="text-align:center;padding:40px 16px;color:rgba(255,255,255,0.4);"><p>Chưa có đề xuất.</p></div>';
+  html = html.replace(
+    /<div role="tabpanel"[^>]*tabpane-suggestion[^"]*"[^>]*class="fade tab-pane"><\/div>/,
+    `<div role="tabpanel" aria-labelledby="react-aria-tab-suggestion" class="fade tab-pane">${recsHtml}</div>`,
+  );
+
   // Server tabs
   const serversHtml = detail.episodes
     .map((srv, idx) => `
@@ -209,5 +245,5 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
     `${episodesHtml}</div></div></div>`,
   );
 
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: html.replace(/\r\n/g, "\n") }} />;
 }

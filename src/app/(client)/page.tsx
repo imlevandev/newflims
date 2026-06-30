@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 
 import { CobePhimMain } from "@/features/cobephim/components/cobephim-main";
 import { loadCobePhimContent } from "@/features/cobephim/lib/load-cobephim-content";
-import { buildHomepageAnimeSectionHtml } from "@/features/cobephim-home/components/homepage-anime-section";
 import { getCachedHomepageAnimeCollections } from "@/features/movie-catalog/lib/movie-catalog-data";
 import type { ApiSuccessResponse } from "@/server/common/http/api-response";
 import type { HomepageFeedDto } from "@/server/modules/movies/dto/movie.dto";
@@ -37,7 +36,6 @@ export default async function ClientHomePage() {
     getHomepageFeedFromInternalApi(),
     getCachedHomepageAnimeCollections(),
   ]);
-  const animeHtml = buildHomepageAnimeSectionHtml(animeCollections);
 
-  return <CobePhimMain appendHtml={animeHtml} feed={feed} html={main} />;
+  return <CobePhimMain animeCollections={animeCollections} feed={feed} html={main} />;
 }
