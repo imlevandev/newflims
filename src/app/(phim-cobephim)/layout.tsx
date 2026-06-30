@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
 
+import { CobePhimFooter } from "@/features/cobephim/components/cobephim-footer";
+import { CobePhimHeader } from "@/features/cobephim/components/cobephim-header";
+import { CobePhimMobileNav } from "@/features/cobephim/components/cobephim-mobile-nav";
+import { loadCobePhimContent } from "@/features/cobephim/lib/load-cobephim-content";
+import "@/features/cobephim/content/cobephim-overrides.css";
+
 const cobePhimStylesheets = [
   "https://cobephim.pw/_next/static/css/7e7d96b1e6991756.css",
   "https://cobephim.pw/_next/static/css/b3d2bc2a41fef9ee.css",
@@ -13,6 +19,8 @@ const cobePhimStylesheets = [
 ];
 
 export default function CobephimLayout({ children }: { children: ReactNode }) {
+  const { footer, mobileNav } = loadCobePhimContent();
+
   return (
     <>
       {cobePhimStylesheets.map((href) => (
@@ -33,14 +41,18 @@ export default function CobephimLayout({ children }: { children: ReactNode }) {
               min-height: 100vh !important;
               background: #0a0a0e !important;
             }
-
             body::before {
               display: none !important;
             }
           `,
         }}
       />
-      {children}
+      <div className="base-load __className_f367f3" suppressHydrationWarning>
+        <CobePhimHeader />
+        {children}
+        <CobePhimFooter html={footer} />
+        <CobePhimMobileNav html={mobileNav} />
+      </div>
     </>
   );
 }

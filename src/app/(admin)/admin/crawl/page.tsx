@@ -34,12 +34,12 @@ export default async function AdminMovieCrawlPage() {
         <div className="eyebrow">Crawl phim</div>
         <h1>Vận hành crawl phim trực tiếp</h1>
         <p className="lead">
-          Đồng bộ dữ liệu từ OPhim, darkbytes và lịch chiếu. Chọn chế độ phù hợp để bắt đầu.
+          Đồng bộ dữ liệu từ OPhim, darkbytes và lịch chiếu.
         </p>
       </section>
 
       <section className="admin-stats-grid">
-        <article className="admin-stat-card admin-stat-card--blue">
+        <article className="admin-stat-card admin-stat-card--gold">
           <div className="admin-stat-card__icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -50,7 +50,7 @@ export default async function AdminMovieCrawlPage() {
           </div>
           <div className="admin-stat-card__label">Nguồn phim</div>
           <div className="admin-stat-card__value">OPhim API</div>
-          <p className="admin-stat-card__note">Metadata, taxonomy và episodes từ OPhim.</p>
+          <p className="admin-stat-card__note">Metadata, taxonomy và episodes.</p>
         </article>
 
         <article className="admin-stat-card admin-stat-card--green">
@@ -66,7 +66,7 @@ export default async function AdminMovieCrawlPage() {
           <p className="admin-stat-card__note">Quét showtimes để crawl phim sắp chiếu.</p>
         </article>
 
-        <article className="admin-stat-card admin-stat-card--amber">
+        <article className="admin-stat-card admin-stat-card--blue">
           <div className="admin-stat-card__icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <ellipse cx="12" cy="5" rx="9" ry="3"/>
@@ -76,15 +76,15 @@ export default async function AdminMovieCrawlPage() {
           </div>
           <div className="admin-stat-card__label">Lưu trữ</div>
           <div className="admin-stat-card__value">MongoDB</div>
-          <p className="admin-stat-card__note">Movie, Episode, Category, Region, CrawlLog.</p>
+          <p className="admin-stat-card__note">Movie, Episode, Category, CrawlLog.</p>
         </article>
       </section>
 
-      <section style={{ marginTop: 24 }}>
+      <section style={{ marginTop: 22 }}>
         <AdminSlugCrawlPanel />
       </section>
 
-      <section className="admin-two-col" style={{ marginTop: 24 }}>
+      <section className="admin-two-col" style={{ marginTop: 22 }}>
         <AdminShowtimeCrawlPanel
           defaultDateEnd={formatDateInput(endDate)}
           defaultDateStart={formatDateInput(startDate)}

@@ -191,14 +191,65 @@ export class MoviesCrawlService {
     overrides: Partial<Record<string, unknown>> = {},
   ) {
     const alreadyExists = await this.moviesDbRepository.movieExists(slug);
-    const detailPayload = await this.ophimRepository.getMovieBySlug(slug);
 
-    if (!detailPayload?.movie?.slug) {
-      return {
-        created: false,
-        updated: false,
-      };
+    // Try OPhim first
+    let detailPayload;
+    let ophimFailed = false;
+    try {
+      detailPayload = await this.ophimRepository.getMovieBySlug(slug);
+    } catch {
+      ophimFailed = true;
     }
+
+    // If OPhim failed or returned no data, try darkbytes
+    if (ophimFailed || !detailPayload?.movie?.slug) {
+      try {
+        const darkbytesDetail = await this.darkbytesRepository.getMovieBySlug(slug, {
+          cache: "no-store",
+          revalidate: false,
+        });
+
+        if (darkbytesDetail?.result?.movie) {
+          const dbMovie = darkbytesDetail.result.movie as Record<string, unknown>;
+          const movieWrite = this.buildDarkbytesMoviePatch(dbMovie, false) as Record<string, unknown> & { slug: string };
+          movieWrite.slug = slug;
+          movieWrite.created = new Date();
+
+          // Also try to get darkbytes metadata enrichment
+          await this.enrichMovieFromDarkbytes(slug);
+
+          const storedMovie = await this.moviesDbRepository.upsertMovie(movieWrite);
+
+          if (storedMovie?._id) {
+            // Scrape cobephim.pw for embed URL since darkbytes has no episodes
+            const fallbackEmbed = await this.scrapeEmbedFallback(slug);
+            if (fallbackEmbed) {
+              await this.moviesDbRepository.replaceEpisodes(storedMovie._id, [
+                {
+                  created: new Date(),
+                  items: [{
+                    air_date: null, created: new Date(), duration: 0,
+                    embed: fallbackEmbed, filename: "", m3u8: "",
+                    name: "Full", size: 0, slug: "full",
+                    source_error: "", source_status: "active" as const, thumbnail: "",
+                  }],
+                  movie_id: storedMovie._id,
+                  server_name: "CobePhim",
+                  server_slug: "cobephim",
+                },
+              ]);
+            }
+            return { created: !alreadyExists, updated: alreadyExists };
+          }
+        }
+      } catch {
+        // darkbytes also failed
+      }
+
+      return { created: false, updated: false };
+    }
+
+    // OPhim path (original logic)
 
     const movieWrite = {
       ...mapOPhimMovieToMovieWrite(detailPayload),
@@ -399,16 +450,22 @@ export class MoviesCrawlService {
 
       const html = await response.text();
 
-      // Extract iframe src
-      const iframeMatch = html.match(/<iframe[^>]*src="(https?:\/\/[^"]*(?:stream|embed|video)[^"]*)"[^>]*>/i);
-      if (iframeMatch) {
-        return iframeMatch[1];
+      // Extract any iframe src (try double quote first)
+      let iframeMatch = html.match(/<iframe[^>]*src="([^"]+)"[^>]*>/i);
+      if (!iframeMatch) {
+        // Try single quote
+        iframeMatch = html.match(/<iframe[^>]*src='([^']+)'[^>]*>/i);
       }
-
-      // Also try stream URL pattern
-      const streamMatch = html.match(/"(https?:\/\/[^"]*stream[^"]*\/video\/[^"]*)"/i);
-      if (streamMatch) {
-        return streamMatch[1];
+      if (!iframeMatch) {
+        // Try unquoted
+        iframeMatch = html.match(/<iframe[^>]*src=([^\s>]+)[^>]*>/i);
+      }
+      if (iframeMatch) {
+        const src = iframeMatch[1];
+        // Only return if it's an http(s) URL (not about:blank, blob:, etc)
+        if (/^https?:\/\//i.test(src)) {
+          return src;
+        }
       }
 
       return null;

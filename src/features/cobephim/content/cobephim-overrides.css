@@ -448,6 +448,31 @@ body::before {
   .cobe-mega-menu__col a:hover {
     color: var(--primary-text);
   }
+
+  .cobe-mega-menu {
+    z-index: 200 !important;
+  }
+
+  .cobe-menu-dropdown {
+    z-index: 100;
+  }
+
+  .cobe-header-react #main_menu {
+    overflow: visible !important;
+  }
+
+  .cobe-header-react .header-elements {
+    overflow: visible !important;
+  }
+
+  .cobe-header-react-wrap {
+    overflow: visible !important;
+  }
+
+  header.cobe-header-react {
+    overflow: visible !important;
+  }
+
 }
 
 @media (max-width: 1199px) {
