@@ -58,6 +58,8 @@ function renderTopic(topic: RemoteMovieCategoryDto) {
 
 function renderHeroSlide(movie: RemoteMovieDto, index: number) {
   const active = index === 0;
+  const imageLoading = active ? "eager" : "lazy";
+  const fetchPriority = active ? ' fetchpriority="high"' : "";
   const className = [
     "swiper-slide",
     active ? "swiper-slide-visible swiper-slide-fully-visible swiper-slide-active" : "",
@@ -70,7 +72,7 @@ function renderHeroSlide(movie: RemoteMovieDto, index: number) {
 
   return `<div class="${className}" style="width: 100%; opacity: ${active ? "1" : "0"}; transform: translate3d(${-100 * index}%, 0px, 0px);">
 <div class="slide-elements"><a class="slide-url" href="${escapeHtml(getMovieLink(movie))}"></a>
-<div class="cover-fade"><div class="cover-image"><img alt="${escapeHtml(movie.name)}" loading="lazy" width="991" height="460" decoding="async" data-nimg="1" src="${escapeHtml(getMovieBackdrop(movie))}" style="color: transparent;"></div></div>
+<div class="cover-fade"><div class="cover-image"><img alt="${escapeHtml(movie.name)}" loading="${imageLoading}"${fetchPriority} width="991" height="460" decoding="async" data-nimg="1" src="${escapeHtml(getMovieBackdrop(movie))}" style="color: transparent;"></div></div>
 <div class="safe-area"><div class="slide-content"><div class="media-item">
 <h3 class="media-title lim-1"><a title="${escapeHtml(movie.name)}" href="${escapeHtml(getMovieLink(movie))}">${escapeHtml(movie.name)}</a></h3>
 <h3 class="media-alias-title"><a title="${escapeHtml(movie.origin_name || movie.name)}" href="${escapeHtml(getMovieLink(movie))}">${escapeHtml(movie.origin_name || movie.name)}</a></h3>
@@ -100,7 +102,10 @@ function renderThumbSlide(movie: RemoteMovieDto, index: number) {
       ? '<span class="thumb-4k-badge" aria-label="Chất lượng 4K">4K</span>'
       : "";
 
-  return `<div class="${className}" data-slide-index="${index}" style="width: 200px;"><div class="v-thumbnail">${qualityBadge}<img alt="${escapeHtml(movie.name)}" loading="lazy" width="59" height="89" decoding="async" data-nimg="1" src="${escapeHtml(getMoviePoster(movie))}" style="color: transparent;"></div></div>`;
+  const imageLoading = index < 6 ? "eager" : "lazy";
+  const fetchPriority = index === 0 ? ' fetchpriority="high"' : "";
+
+  return `<div class="${className}" data-slide-index="${index}" style="width: 200px;"><div class="v-thumbnail">${qualityBadge}<img alt="${escapeHtml(movie.name)}" loading="${imageLoading}"${fetchPriority} width="59" height="89" decoding="async" data-nimg="1" src="${escapeHtml(getMoviePoster(movie))}" style="color: transparent;"></div></div>`;
 }
 
 export function buildHomepageAnimeSectionHtml(collections: HomepageMovieCollectionDto[]) {

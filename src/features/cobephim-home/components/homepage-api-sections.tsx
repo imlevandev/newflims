@@ -187,7 +187,6 @@ export function HomepageApiSections({ feed }: HomepageApiSectionsProps) {
       <SafeBanners feed={feed} />
       <div className="cards-row effect-fade-in cobe-api-section">
         <div className="cobe-home-dashboard">
-          <TopComments comments={feed.comments.topComments} />
           <RankingList
             icon={<LocalFireDepartmentRoundedIcon sx={{ fontSize: 20 }} />}
             items={feed.comments.moviesHot}

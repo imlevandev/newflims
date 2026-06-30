@@ -31,6 +31,15 @@ function getMenuHref(item: HomepageMenuItemDto) {
   return item.data && item.data.trim() ? item.data : "#";
 }
 
+function isVietnamLink(label: string, href: string) {
+  const normalized = `${label} ${href}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  return normalized.includes("viet-nam") || normalized.includes("vietnam") || normalized.includes("viet nam");
+}
+
 function SearchIcon() {
   return (
     <svg aria-hidden="true" fill="none" height="1em" viewBox="0 0 24 24" width="1em">
@@ -70,8 +79,14 @@ export async function CobePhimHeader({ menus }: CobePhimHeaderProps = {}) {
   ]);
 
   const categoryColumns = chunkItems(categories, 4);
-  const regionColumns = chunkItems(regions, 4);
-  const menuItems = menus?.length ? menus : null;
+  const safeRegions = regions.filter((region) => !isVietnamLink(region.name, `/quoc-gia/${region.slug}`));
+  const regionColumns = chunkItems(safeRegions, 4);
+  const menuItems = menus?.length
+    ? menus.map((item) => ({
+        ...item,
+        children: item.children?.filter((child) => !isVietnamLink(child.label, getMenuHref(child))),
+      }))
+    : null;
 
   return (
     <>

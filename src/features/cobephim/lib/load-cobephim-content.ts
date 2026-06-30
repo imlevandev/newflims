@@ -12,6 +12,125 @@ let cache: CobePhimFragments | null = null;
 let homeCache: string | null = null;
 let mobileNavCache: string | null = null;
 
+const BLOCKED_VIETNAM_MOVIE_SLUGS = [
+  "tho-oi",
+  "biet-doi-sieu-kho",
+  "co-hau-gai",
+  "bo-gia",
+  "mai",
+  "nha-ba-nu",
+  "lat-mat",
+  "lat-mat-7",
+  "dat-rung-phuong-nam",
+  "con-cam",
+  "quy-cau",
+  "dia-dao",
+  "dia-dao-mat-troi-trong-bong-toi",
+  "tu-chien-tren-khong",
+  "nha-gia-tien",
+  "bo-tu-bao-thu",
+  "nu-hon-bac-ty",
+  "tham-tu-kien",
+  "mua-do",
+  "thien-than-ho-menh",
+];
+
+function findClosingDivIndex(html: string, startIndex: number) {
+  const tagPattern = /<\/?div\b[^>]*>/gi;
+  tagPattern.lastIndex = startIndex;
+
+  let depth = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = tagPattern.exec(html))) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+
+      if (depth === 0) {
+        return tagPattern.lastIndex;
+      }
+    } else {
+      depth += 1;
+    }
+  }
+
+  return -1;
+}
+
+function removeEnclosingSwiperSlide(html: string, slug: string) {
+  let nextHtml = html;
+  const markers = [`href="/phim/${slug}`, `href="/xem-phim/${slug}`, `${slug}-poster`, `${slug}-thumb`, `/${slug}`];
+
+  for (;;) {
+    const markerIndex = markers
+      .map((marker) => nextHtml.indexOf(marker))
+      .filter((index) => index !== -1)
+      .sort((left, right) => left - right)[0];
+
+    if (markerIndex === undefined) {
+      return nextHtml;
+    }
+
+    const blockStart = nextHtml.lastIndexOf('<div class="swiper-slide', markerIndex);
+    const fallbackStart = nextHtml.lastIndexOf('<div class="d-item', markerIndex);
+    const start = blockStart === -1 ? fallbackStart : blockStart;
+
+    if (start === -1) {
+      return nextHtml;
+    }
+
+    const end = findClosingDivIndex(nextHtml, start);
+
+    if (end === -1 || end <= start) {
+      return nextHtml;
+    }
+
+    nextHtml = `${nextHtml.slice(0, start)}${nextHtml.slice(end)}`;
+  }
+}
+
+function normalizeFirstHeroSlide(html: string) {
+  const topMainIndex = html.indexOf("top-slide-main");
+
+  if (topMainIndex === -1) {
+    return html;
+  }
+
+  const firstSlideStart = html.indexOf('<div class="swiper-slide', topMainIndex);
+
+  if (firstSlideStart === -1) {
+    return html;
+  }
+
+  const firstSlideTagEnd = html.indexOf(">", firstSlideStart);
+
+  if (firstSlideTagEnd === -1) {
+    return html;
+  }
+
+  const currentTag = html.slice(firstSlideStart, firstSlideTagEnd + 1);
+  const normalizedTag = currentTag
+    .replace(
+      /class="[^"]*"/,
+      'class="swiper-slide swiper-slide-visible swiper-slide-fully-visible swiper-slide-active"',
+    )
+    .replace(
+      /style="[^"]*"/,
+      'style="width: 1440px; opacity: 1; transform: translate3d(0px, 0px, 0px);"',
+    );
+
+  return `${html.slice(0, firstSlideStart)}${normalizedTag}${html.slice(firstSlideTagEnd + 1)}`;
+}
+
+function removeVietnamMoviesFromStaticHome(html: string) {
+  const withoutBlockedMovies = BLOCKED_VIETNAM_MOVIE_SLUGS.reduce(
+    (nextHtml, slug) => removeEnclosingSwiperSlide(nextHtml, slug),
+    html,
+  );
+
+  return normalizeFirstHeroSlide(withoutBlockedMovies);
+}
+
 function normalizeHeaderHtml(html: string) {
   return html
     .replace('action="#"', 'action="/tim-kiem" method="get"')
@@ -32,7 +151,7 @@ function normalizeHeaderHtml(html: string) {
 }
 
 function normalizeMainHtml(html: string) {
-  return html
+  return removeVietnamMoviesFromStaticHome(html)
     .replace(
       '<a class="home-category-pills__pill" href="#"><span class="home-category-pills__label">Phim bộ</span></a>',
       '<a class="home-category-pills__pill" href="/danh-sach?type=series"><span class="home-category-pills__label">Phim bộ</span></a>',
@@ -56,10 +175,13 @@ function normalizeMobileNavHtml(html: string) {
 }
 
 function normalizeFooterHtml(html: string) {
-  return html.replace(
-    /<a class="social-item" target="_blank" href="https:\/\/discord\.gg\/daoroxanh" title="Discord">[\s\S]*?<\/a>/,
-    "",
-  );
+  return html
+    .replace(/<div class="true">[\s\S]*?<\/div><\/div>/, "")
+    .replace("như Việt Nam, Hàn Quốc", "như Hàn Quốc")
+    .replace(
+      /<a class="social-item" target="_blank" href="https:\/\/discord\.gg\/daoroxanh" title="Discord">[\s\S]*?<\/a>/,
+      "",
+    );
 }
 
 const readFragment = (filename: string) => {
@@ -79,6 +201,10 @@ const readFragment = (filename: string) => {
   }
 
   if (filename === "main.html") {
+    return normalizeMainHtml(html);
+  }
+
+  if (filename === "home-static.html") {
     return normalizeMainHtml(html);
   }
 

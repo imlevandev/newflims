@@ -95,6 +95,13 @@ body::before {
   border-radius: 8px !important;
 }
 
+.base-load .cards-row.big-slide .big-slide-wrapper .top-slide-small .v-thumbnail img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
 .base-load header,
 .base-load header input,
 .base-load header button,
@@ -202,7 +209,7 @@ body::before {
 
 .cobe-home-dashboard {
   display: grid;
-  grid-template-columns: minmax(280px, 1.3fr) repeat(3, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
   gap: 1rem;
 }
 
@@ -321,11 +328,24 @@ body::before {
   }
 
   .phim-shell [data-site-header="true"] {
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 0;
     left: 0;
-    z-index: 50;
+    z-index: 90;
+  }
+
+  .phim-shell .movie-catalog-main {
+    padding-top: 132px;
+  }
+
+  .phim-shell .movie-detail-hero-banner {
+    margin-top: 0;
+  }
+
+  .phim-shell .movie-detail-stage {
+    margin-top: 24px !important;
+    padding-bottom: 56px;
   }
 
   .movie-catalog [data-site-header="true"] {
@@ -449,5 +469,18 @@ body::before {
   .cobe-banner-strip,
   .cobe-home-dashboard {
     grid-template-columns: 1fr;
+  }
+
+  .phim-shell .movie-catalog-main {
+    padding-top: 92px;
+  }
+
+  .phim-shell .movie-detail-hero-banner {
+    margin-top: 0 !important;
+  }
+
+  .phim-shell .movie-detail-stage {
+    margin-top: 16px !important;
+    padding-bottom: 32px;
   }
 }
