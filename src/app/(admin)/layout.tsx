@@ -7,6 +7,7 @@ import MovieRoundedIcon from "@mui/icons-material/MovieRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 
 import { WorkspaceNav } from "@/components/navigation/workspace-nav";
+import "@/features/admin-movies/admin.css";
 
 const items = [
   { href: "/admin", icon: DashboardRoundedIcon, label: "Tổng quan" },
@@ -26,7 +27,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <WorkspaceNav
           items={items}
           subtitle="Quản trị hệ thống phim"
-          title="CobePhim Admin"
+          title="CobePhim"
         />
         <div className="admin-layout__content">{children}</div>
       </div>

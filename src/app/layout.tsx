@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { TermsModal } from "@/components/terms-modal";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 
 import "./globals.css";
+import "@/components/terms-modal.css";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
@@ -30,6 +32,7 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`}
         suppressHydrationWarning
       >
+        <TermsModal />
         {children}
       </body>
     </html>
